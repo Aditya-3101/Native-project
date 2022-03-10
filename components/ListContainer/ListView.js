@@ -10,19 +10,32 @@ import {
   ToastAndroid,
   StatusBar,
   Image,
+  BackHandler,
+  Platform,
 } from "react-native";
 import { useEffect, useState } from "react";
 import { MobileContext } from "../contexts/MobileContext";
+import { LaptopContext } from "../contexts/LaptopContext";
+import { IntakeContext } from "../contexts/Intake";
 import { SortPhonesContext } from "../contexts/SphonesContext";
+import { CartContext } from "../contexts/Getcart";
 import Icon from "react-native-vector-icons/FontAwesome";
-import Modal from "../smartphones/Modal";
+import MaterialIcon from "react-native-vector-icons/MaterialIcons";
+import Modal from "./Modal";
 import { useNavigation } from "@react-navigation/native";
 import Header from "../Header";
+import { borderEndColor } from "react-native/Libraries/Components/View/ReactNativeStyleAttributes";
 
-const Mobiles = () => {
+const ListView = (props) => {
   const [smData, setSmData] = useContext(MobileContext);
 
   const [smbData, setSmbData] = useContext(SortPhonesContext);
+
+  const [lpData, setLpData] = useContext(LaptopContext);
+
+  const [intake, setIntake] = useContext(IntakeContext);
+
+  const [items, setItems] = useContext(CartContext);
 
   const [search, setSearch] = useState("");
 
@@ -64,15 +77,28 @@ const Mobiles = () => {
 
   const [unClicked, setUnClicked] = useState(false);
 
-  const storageoptions = [16, 32, 64, 128, 256];
+  const [storageoptions, setStorageOptions] = useState([16, 32, 64, 128, 256]);
+
+  const lpStorageoptions = [256, 512, 1, 2];
+
+  const smRAMoptions = [2, 3, 4, 6, 8, 12];
+
+  const lpRAMoptions = [4, 8, 12, 16, 32];
 
   const [isloading, setLoading] = useState(true);
 
   const priceoptions = [10000, 20000, 40000, 80000, 100000];
 
+  const lpPriceOptions = [30000, 50000, 80000, 200000, 400000];
+
   const navigation = useNavigation();
 
-  const [pages, setpages] = useState(8);
+  const [pages, setpages] = useState(7);
+
+  //const [intake, setIntake] = useState(props.route.params.type);
+
+  //console.log(props);
+  console.log("intake in listview " + intake + "\n");
 
   const sorter = (a, b) => {
     return a.Sprice - b.Sprice;
@@ -92,35 +118,97 @@ const Mobiles = () => {
 
   //dessortByAge(smData);
 
+  console.log("intake" + intake);
+
   useEffect(() => {
-    fetch("http://192.168.43.29:4000/api/main/smartphones")
-      .then((res) => res.json())
-      .then((result) => {
-        setSmData(result);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.log(error);
+    let isMounted = true;
+    if (intake === "mobiles") {
+      isMounted = true;
+      fetch("http://192.168.43.29:4000/api/main/smartphones")
+        .then((res) => res.json())
+        .then((result) => {
+          isMounted ? setSmData(result) : null;
+          //setStorageOptions(result.Object.Sstorage)
+          //setSmData(result);
+          //console.log(result);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      fetch("http://192.168.43.29:4000/api/main/smartphones/sort/Brands")
+        .then((res) => res.json())
+        .then((result) => {
+          setSmbData(result);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else if (intake === "Laptops") {
+      console.log(intake == "Laptops");
+      isMounted = true;
+      fetch("http://192.168.43.29:4000/api/main/laptops")
+        .then((res) => res.json())
+        .then((result) => {
+          console.log(result);
+          setLoading(false);
+          isMounted ? setLpData(result) : null;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      fetch("http://192.168.43.29:4000/api/main/laptops/sort/Brands")
+        .then((res) => res.json())
+        .then((result) => {
+          setSmbData(result);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+
+    if ((Platform.OS = "android")) {
+      BackHandler.addEventListener("hardwareBackPress", () => {
+        //console.log("back btn pressed");
+        smData.length > 0
+          ? setSmData([])
+          : lpData.length > 0
+          ? setLpData([])
+          : null;
       });
-    fetch("http://192.168.43.29:4000/api/main/smartphones/sort/Brands")
-      .then((res) => res.json())
-      .then((result) => {
-        setSmbData(result);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+
+      // return () => {
+      //   BackHandler.removeEventListener("hardwareBackPress", () => {
+      //     //console.log("back btn pressed");
+      //     setSmData("");
+      //   });
+    }
+    //}
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const Regain = () => {
-    fetch("http://192.168.43.29:4000/api/main/smartphones")
-      .then((res) => res.json())
-      .then((result) => {
-        setSmData(result);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    smData.length > 0
+      ? fetch("http://192.168.43.29:4000/api/main/smartphones")
+          .then((res) => res.json())
+          .then((result) => {
+            setSmData(result);
+          })
+          .catch((error) => {
+            console.log(error);
+          })
+      : lpData.length > 0
+      ? fetch("http://192.168.43.29:4000/api/main/laptops")
+          .then((res) => res.json())
+          .then((Result) => {
+            setLpData(Result);
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+      : null;
   };
 
   const brandName = [
@@ -128,6 +216,8 @@ const Mobiles = () => {
       .reduce((map, obj) => map.set(obj.Sbrand, obj), new Map())
       .values(),
   ];
+
+  //const brandName = [...smbData];
 
   const getNames = (names) => {
     getBrands.push(`"${names}"`);
@@ -163,109 +253,255 @@ const Mobiles = () => {
   };
 
   const applyThis = () => {
-    if ((getMultifilters.length > 1) & (getRam.length > 0)) {
-      const getnames = getMultifilters.join();
-      console.log(getnames + " line 138");
+    if (smData.length > 1) {
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getBrands.length == 0)
+      ) {
+        const getnames = getMultifilters.join();
+        console.log(getnames + " line 138");
 
-      fetch(
-        `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names/rams?names=${getMultifilters
-          .join()
-          .replace(/[^a-zA-Z]/g, "")}&rams=${getMultifilters
-          .join()
-          .replace(/[^0-9]/g, "")}`
-      )
-        .then((res) => res.json())
-        .then((Result) => {
-          setSmData(Result);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-    if (
-      (getMultifilters.length > 1) &
-      (getRam.length > 0) &
-      (getStorage.length > 0)
-    ) {
-      const getnames = getMultifilters.join();
-      console.log(getnames);
+        fetch(
+          `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names/rams?names=${getMultifilters
+            .join()
+            .replace(/[^a-zA-Z]/g, "")}&rams=${getMultifilters
+            .join()
+            .replace(/[^0-9]/g, "")}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setSmData(Result);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+        console.log(getnames);
 
-      fetch(
-        `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names/ram/storage?name=${getMultifilters
-          .join()
-          .replace(/[^a-zA-Z]/g, "")}&ram=${getRam}&storage=${getStorage}`
-      )
-        .then((res) => res.json())
-        .then((Result) => {
-          setSmData(Result);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else if ((getBrands.length > 0) & (getRam.length == 0)) {
-      fetch(
-        `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names?brand=${getBrands.join()}`
-      )
-        .then((res) => res.json())
-        .then((result) => {
-          setSmData(result);
-          console.log(smData.length);
-          cpygetbrands.push(result);
-          setCpyGetBrandsLength(getBrands);
-          setGetBrands([]);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else if ((getRam.length > 0) & (getBrands.length == 0)) {
-      fetch(
-        `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/RAM?ram=${getRam.join()}`
-      )
-        .then((res) => res.json())
-        .then((result) => {
-          setSmData(result);
-          console.log("RAM Section", result);
-          setCpyGetRamsLength(getRam);
-          setGetRam([]);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else if (
-      (getStorage.length > 0) &
-      (getRam.length === 0) &
-      (getPrice.length === 0)
-    ) {
-      fetch(
-        `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/storage?storage=${getStorage.join()}`
-      )
-        .then((res) => res.json())
-        .then((result) => {
-          setSmData(result);
-          setCpyGetStorageLength(getStorage);
-          setGetStorage([]);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    } else if (
-      (getPrice.length > 0) &
-      (getRam.length === 0) &
-      (getStorage.length === 0) &
-      (getBrands.length === 0)
-    ) {
-      fetch(
-        `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/Price?price=${getPrice.join()}`
-      )
-        .then((res) => res.json())
-        .then((Result) => {
-          setSmData(Result);
-          setCpyGetPriceLength(getPrice);
-          setGetPrice([]);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+        fetch(
+          `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names/ram/storage?name=${getMultifilters
+            .join()
+            .replace(/[^a-zA-Z]/g, "")}&ram=${getRam}&storage=${getStorage}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setSmData(Result);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if ((getBrands.length > 0) & (getRam.length == 0)) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names?brand=${getBrands.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setSmData(result);
+            console.log(smData.length);
+            cpygetbrands.push(result);
+            setGetMultifilters([]);
+            setCpyGetBrandsLength(getBrands);
+            setGetBrands([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getRam.length > 0) &
+        (getBrands.length == 0) &
+        (getStorage.length == 0) &
+        (getPrice.length == 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/RAM?ram=${getRam.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setSmData(result);
+            console.log("RAM Section", result);
+            setCpyGetRamsLength(getRam);
+            setGetRam([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getStorage.length > 0) &
+        (getRam.length === 0) &
+        (getPrice.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/storage?storage=${getStorage.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setSmData(result);
+            setCpyGetStorageLength(getStorage);
+            setGetStorage([]);
+            setGetMultifilters([]);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else if (
+        (getPrice.length > 0) &
+        (getRam.length === 0) &
+        (getStorage.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/Price?price=${getPrice.join()}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setSmData(Result);
+            setCpyGetPriceLength(getPrice);
+            setGetPrice([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    } else if (lpData.length > 1) {
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length === 0) &
+        (getBrands.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+        console.log(getnames + " line 138");
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/laptops/sort/Brands/names/rams?names=${getMultifilters
+            .join()
+            .replace(/[^a-zA-Z]/g, "")}&rams=${getMultifilters
+            .join()
+            .replace(/[^0-9]/g, "")}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setLpData(Result);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+        console.log(
+          getnames + "multiple queries with ram storage and brandName"
+        );
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/laptops/sort/Brands/names/ram/storage?name=${getMultifilters
+            .join()
+            .replace(/[^a-zA-Z]/g, "")}&ram=${getRam}&storage=${getStorage}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            console.log(Result);
+            setLpData(Result);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getBrands.length > 0) &
+        (getRam.length == 0) &
+        (getStorage.length === 0) &
+        (getPrice.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/laptops/sort/Brands/names?brand=${getBrands.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setLpData(result);
+            console.log(lpData.length);
+            cpygetbrands.push(result);
+            setCpyGetBrandsLength(getBrands);
+            setGetBrands([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getRam.length > 0) &
+        (getBrands.length == 0) &
+        (getPrice.length == 0) &
+        (getStorage.length == 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/laptops/sort/Brands/RAM?ram=${getRam.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setLpData(result);
+            console.log("RAM Section", result);
+            setCpyGetRamsLength(getRam);
+            setGetRam([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getStorage.length > 0) &
+        (getRam.length === 0) &
+        (getPrice.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/laptops/sort/Brands/storage?storage=${getStorage.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setLpData(result);
+            setCpyGetStorageLength(getStorage);
+            setGetStorage([]);
+            setGetMultifilters([]);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else if (
+        (getPrice.length > 0) &
+        (getRam.length === 0) &
+        (getStorage.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/laptops/sort/Brands/Price?price=${getPrice.join()}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setLpData(Result);
+            setCpyGetPriceLength(getPrice);
+            setGetPrice([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
     }
   };
 
@@ -274,14 +510,29 @@ const Mobiles = () => {
       <ScrollView>
         <StatusBar hidden={false} backgroundColor={"rgba(0,0,0,0.9)"} />
         <View>
-          <Header />
+          <Header
+            name={
+              intake == "mobiles"
+                ? "Mobiles"
+                : intake == "Laptops"
+                ? "Laptops"
+                : null
+            }
+          />
           <View style={styles.header}>
             <Icon
               name="arrow-left"
               color="white"
               fontsize={50}
               style={styles.backIcon}
-              onPress={() => navigation.navigate("Home")}
+              onPress={() => {
+                navigation.navigate("Home"),
+                  smData.length > 0
+                    ? setSmData("")
+                    : lpData.length > 0
+                    ? setLpData("")
+                    : null;
+              }}
             />
             <TextInput
               onChangeText={setSearch}
@@ -289,12 +540,28 @@ const Mobiles = () => {
               placeholder="Search"
               style={styles.searchInput}
             />
-            <Icon
-              name="shopping-cart"
+            <MaterialIcon
+              name="local-mall"
               color="white"
-              fontSize={35}
+              fontsize={54}
               style={styles.cartIcon}
             />
+            <Text
+              style={{
+                backgroundColor: "white",
+                width: 19,
+                textAlign: "center",
+                borderRadius: 50,
+                color: "black",
+                marginLeft: "auto",
+                marginTop: -20,
+                marginRight: -13,
+                fontSize: 13,
+                fontWeight: "bold",
+              }}
+            >
+              {items.length}
+            </Text>
           </View>
           <View style={styles.sortDrawer}>
             <TouchableOpacity
@@ -303,8 +570,15 @@ const Mobiles = () => {
               }}
             >
               <View style={styles.sortIcon}>
-                <Icon name="sort" color="#495057" style={styles.icons} />
-                <Text style={{ fontSize: 18, fontWeight: "900" }}>Sort</Text>
+                <Icon name="sort" color="rgb(0,0,0)" style={styles.icons} />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    color: "rgb(0,0,0)",
+                  }}
+                >
+                  Sort
+                </Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
@@ -313,8 +587,19 @@ const Mobiles = () => {
               }}
             >
               <View style={styles.sortRIcon}>
-                <Icon name="filter" color="#495057" style={styles.icons} />
-                <Text style={{ fontSize: 18 }}>Filter</Text>
+                <Icon
+                  name="filter"
+                  color="rgb(20,20,20)"
+                  style={styles.icons}
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    color: "rgb(0,0,0)",
+                  }}
+                >
+                  Filter
+                </Text>
                 <View
                   style={{
                     color: "black",
@@ -350,6 +635,11 @@ const Mobiles = () => {
               paddingLeft: 10,
               alignItems: "center",
               backgroundColor: "white",
+              borderBottomWidth: 1,
+              borderBottomColor: "rgb(20,20,20)",
+              //borderRadius: 50,
+              borderBottomStartRadius: 10,
+              borderBottomEndRadius: 10,
               display: showCart ? "flex" : "none",
             }}
           >
@@ -369,13 +659,23 @@ const Mobiles = () => {
             <View style={styles.firstSortDiv}>
               <TouchableOpacity
                 onPress={() => {
-                  smData.sort((a, b) => {
-                    setShowCart(false);
-                    setShowRemover(true);
-                    setSortLowtoHigh(true);
-                    setSortType("Price:Low to High");
-                    return a.Sprice - b.Sprice;
-                  });
+                  if (smData.length > 1) {
+                    smData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(true);
+                      setSortType("Price:Low to High");
+                      return a.Sprice - b.Sprice;
+                    });
+                  } else if (lpData.length > 1) {
+                    lpData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(true);
+                      setSortType("Price:Low to High");
+                      return a.LPprice - b.LPprice;
+                    });
+                  }
                 }}
               >
                 <Text
@@ -393,12 +693,20 @@ const Mobiles = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
-                  smData.sort((a, b) => {
-                    setShowCart(false);
-                    setSortType("");
-                    setShowRemover(false);
-                    return a.ProductId - b.ProductId;
-                  });
+                  if (smData.length > 1) {
+                    smData.sort((a, b) => {
+                      setShowCart(false);
+                      setSortType("");
+                      setShowRemover(false);
+                      return a.ProductId - b.ProductId;
+                    });
+                  } else if (lpData.length > 1) {
+                    lpData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(false);
+                      return a.ProductId - b.ProductId;
+                    });
+                  }
                 }}
               >
                 <Text
@@ -417,13 +725,23 @@ const Mobiles = () => {
             <View style={styles.secondSortDiv}>
               <TouchableOpacity
                 onPress={() => {
-                  smData.sort((a, b) => {
-                    setShowCart(false);
-                    setShowRemover(true);
-                    setSortLowtoHigh(false);
-                    setSortType("Price:High to Low");
-                    return b.Sprice - a.Sprice;
-                  });
+                  if (smData.length > 1) {
+                    smData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(false);
+                      setSortType("Price:High to Low");
+                      return b.Sprice - a.Sprice;
+                    });
+                  } else if (lpData.length > 1) {
+                    lpData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(false);
+                      setSortType("Price:High to Low");
+                      return b.LPprice - a.LPprice;
+                    });
+                  }
                 }}
               >
                 <Text
@@ -474,11 +792,19 @@ const Mobiles = () => {
                 display: sortLowtoHigh ? "flex" : "none",
               }}
               onPress={() => {
-                smData.sort((a, b) => {
-                  setSortType("Relevance");
-                  setShowRemover(false);
-                  return a.ProductId - b.ProductId;
-                });
+                if (smData.length > 1) {
+                  smData.sort((a, b) => {
+                    setSortType("Relevance");
+                    setShowRemover(false);
+                    return a.ProductId - b.ProductId;
+                  });
+                } else if (lpData.length > 1) {
+                  lpData.sort((a, b) => {
+                    setSortType("Relevance");
+                    setShowRemover(false);
+                    return a.ProductId - b.ProductId;
+                  });
+                }
               }}
             >
               <Icon name="times" color="white" style={styles.closeIcon} />
@@ -499,11 +825,19 @@ const Mobiles = () => {
                 display: sortLowtoHigh ? "none" : "flex",
               }}
               onPress={() => {
-                smData.sort((a, b) => {
-                  setSortType("Relevance");
-                  setShowRemover(false);
-                  return a.ProductId - b.ProductId;
-                });
+                if (smData.length > 1) {
+                  smData.sort((a, b) => {
+                    setSortType("Relevance");
+                    setShowRemover(false);
+                    return a.ProductId - b.ProductId;
+                  });
+                } else if (lpData.length > 1) {
+                  lpData.sort((a, b) => {
+                    setSortType("Relevance");
+                    setShowRemover(false);
+                    return a.ProductId - b.ProductId;
+                  });
+                }
               }}
             >
               <Icon name="times" color="white" style={styles.closeIcon} />
@@ -579,23 +913,43 @@ const Mobiles = () => {
                       console.log(
                         cpygetBrandslength.join().replace(`${pars}`, "")
                       );
-                      fetch(
-                        `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
-                          .join()
-                          .replace(pars, "")}`
-                      )
-                        .then((res) => res.json())
-                        .then((Result) => {
-                          //console.log(Result);
-                          setSmData(Result);
-                          //cpygetBrandslength.length - 1;
-                          setCpyGetBrandsLength(
-                            cpygetBrandslength.filter((e) => e !== pars)
-                          ); // will return ['A', 'C']
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                        });
+                      smData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              //console.log(Result);
+                              setSmData(Result);
+                              //cpygetBrandslength.length - 1;
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              ); // will return ['A', 'C']
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : lpData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/laptops/sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              //console.log(Result);
+                              setLpData(Result);
+                              //cpygetBrandslength.length - 1;
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              ); // will return ['A', 'C']
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : null;
                     }}
                   >
                     <Icon
@@ -644,23 +998,39 @@ const Mobiles = () => {
                       console.log(
                         cpygetBrandslength.join().replace(`${pars}`, "")
                       );
-                      fetch(
-                        `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
-                          .join()
-                          .replace(pars, "")}`
-                      )
-                        .then((res) => res.json())
-                        .then((Result) => {
-                          //console.log(Result);
-                          setSmData(Result);
-                          //cpygetBrandslength.length - 1;
-                          setCpyGetBrandsLength(
-                            cpygetBrandslength.filter((e) => e !== pars)
-                          ); // will return ['A', 'C']
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                        });
+                      smData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setSmData(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : lpData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/laptops/sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setLpData(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : null;
                     }}
                   >
                     <Icon
@@ -736,32 +1106,49 @@ const Mobiles = () => {
                       alignItems: "center",
                       justifyContent: "space-evenly",
                       position: "relative",
-                      //display:
-                      //cpygetBrandslength.length === 2 ? "flex" : "none",
-                      //display: unClicked === pars ? "none" : "flex",
                     }}
                     onPress={() => {
                       console.log("line 555 " + pars);
                       console.log(
                         cpygetRamslength.join().replace(`${pars}`, "")
                       );
-                      fetch(
-                        `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/RAM/sName/rNames?sName=${pars}&rName=${cpygetRamslength
-                          .join()
-                          .replace(pars, "")}`
-                      )
-                        .then((res) => res.json())
-                        .then((Result) => {
-                          //console.log(Result);
-                          setSmData(Result);
-                          //cpygetBrandslength.length - 1;
-                          setCpyGetRamsLength(
-                            cpygetRamslength.filter((e) => e !== pars)
-                          ); // will return ['A', 'C']
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                        });
+                      smData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/RAM/sName/rNames?sName=${pars}&rName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              //console.log(Result);
+                              setSmData(Result);
+                              //cpygetBrandslength.length - 1;
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              ); // will return ['A', 'C']
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : lpData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/laptops/sort/Brands/RAM/sName/rNames?sName=${pars}&rName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              console.log(Result);
+                              setLpData(Result);
+                              //cpygetBrandslength.length - 1;
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              ); // will return ['A', 'C']
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : null;
                     }}
                   >
                     <Icon
@@ -805,23 +1192,41 @@ const Mobiles = () => {
                       console.log(
                         cpygetRamslength.join().replace(`${pars}`, "")
                       );
-                      fetch(
-                        `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/RAM/seName/reNames?seName=${pars}&reName=${cpygetRamslength
-                          .join()
-                          .replace(pars, "")}`
-                      )
-                        .then((res) => res.json())
-                        .then((Result) => {
-                          //console.log(Result);
-                          setSmData(Result);
-                          //cpygetBrandslength.length - 1;
-                          setCpyGetRamsLength(
-                            cpygetRamslength.filter((e) => e !== pars)
-                          ); // will return ['A', 'C']
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                        });
+                      smData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/RAM/seName/reNames?seName=${pars}&reName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              //console.log(Result);
+                              setSmData(Result);
+                              //cpygetBrandslength.length - 1;
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              ); // will return ['A', 'C']
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : lpData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/laptops/sort/Brands/RAM/seName/reNames?seName=${pars}&reName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setLpData(Result);
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : null;
                     }}
                   >
                     <Icon
@@ -909,21 +1314,45 @@ const Mobiles = () => {
                       console.log(
                         cpygetRamslength.join().replace(`${pars}`, "")
                       );
-                      fetch(
-                        `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength
-                          .join()
-                          .replace(pars, "")}`
-                      )
-                        .then((res) => res.json())
-                        .then((Result) => {
-                          setSmData(Result);
-                          setCpyGetStorageLength(
-                            cpygetStoragelength.filter((e) => e !== pars)
-                          );
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                        });
+                      smData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setSmData(Result);
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : lpData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/laptops/sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              console.log(Result);
+                              setLpData(Result);
+                              console.log(
+                                cpygetStoragelength
+                                  .join()
+                                  .replace(`${pars}`, "")
+                              );
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : null;
                     }}
                   >
                     <Icon
@@ -1001,22 +1430,41 @@ const Mobiles = () => {
                       console.log(
                         cpygetStoragelength.join().replace(`${pars}`, "")
                       );
-                      fetch(
-                        `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/Storage/seName/reNames?seName=${pars}&reName=${cpygetStoragelength
-                          .join()
-                          .replace(pars, "")}`
-                      )
-                        .then((res) => res.json())
-                        .then((Result) => {
-                          setSmData(Result);
-                          console.log(Result);
-                          setCpyGetStorageLength(
-                            cpygetStoragelength.filter((e) => e !== pars)
-                          );
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                        });
+                      smData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/Storage/seName/reNames?seName=${pars}&reName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setSmData(Result);
+                              console.log(Result);
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : lpData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/laptops/sort/Brands/Storage/seName/reNames?seName=${pars}&reName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setLpData(Result);
+                              console.log(Result);
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : null;
                     }}
                   >
                     <Icon
@@ -1101,6 +1549,8 @@ const Mobiles = () => {
               paddingLeft: 10,
               alignItems: "center",
               backgroundColor: "white",
+              borderBottomColor: "rgb(20,20,20)",
+              borderBottomWidth: 1,
               display: showFilters ? "flex" : "none",
             }}
           >
@@ -1123,29 +1573,71 @@ const Mobiles = () => {
           >
             <View style={styles.filterListContainer}>
               <TouchableOpacity
-                style={styles.filterlistBtn}
+                style={{
+                  backgroundColor: "#e7e7e7",
+                  color: "red",
+                  flexDirection: "row",
+                }}
                 onPress={() => setDefaultNames("Brand")}
               >
-                <Text style={styles.filterList}>Brand </Text>
+                <Text
+                  style={{
+                    width: Dimensions.get("window").width / 3,
+                    //height: 100,
+                    textAlign: "center",
+                    color: defaultNames == "Brand" ? "black" : "white",
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    fontSize: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    backgroundColor:
+                      defaultNames == "Brand" ? "#e7e7e7" : "rgb(0,0,5)",
+                  }}
+                >
+                  Brand{" "}
+                </Text>
                 <View
                   style={{
                     color: "black",
                     backgroundColor: "#4abf18",
                     marginTop: -4,
-                    width: 9,
-                    height: 9,
-                    fontSize: 17,
-                    borderWidth: 1,
+                    width: 8,
+                    height: 8,
+                    //fontSize: 17,
+                    //borderWidth: 1,
                     borderRadius: 50,
                     display: cpygetBrandslength.length > 0 ? "flex" : "none",
                   }}
                 ></View>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.filterlistBtn}
+                style={{
+                  backgroundColor: "#e7e7e7",
+                  color: "red",
+                  flexDirection: "row",
+                }}
                 onPress={() => setDefaultNames("RAM")}
               >
-                <Text style={styles.filterList}>RAM </Text>
+                <Text
+                  style={{
+                    width: Dimensions.get("window").width / 3,
+                    //height: 100,
+                    textAlign: "center",
+                    color: defaultNames == "RAM" ? "black" : "white",
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    fontSize: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    backgroundColor:
+                      defaultNames == "RAM" ? "#e7e7e7" : "rgb(0,0,5)",
+                  }}
+                >
+                  RAM{" "}
+                </Text>
                 <View
                   style={{
                     color: "black",
@@ -1156,17 +1648,38 @@ const Mobiles = () => {
                     width: 8,
                     height: 8,
                     fontSize: 17,
-                    borderWidth: 1,
+                    //borderWidth: 1,
                     borderRadius: 50,
                     display: cpygetRamslength.length > 0 ? "flex" : "none",
                   }}
                 ></View>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.filterlistBtn}
+                style={{
+                  backgroundColor: "#e7e7e7",
+                  color: "red",
+                  flexDirection: "row",
+                }}
                 onPress={() => setDefaultNames("Storage")}
               >
-                <Text style={styles.filterList}>Storage</Text>
+                <Text
+                  style={{
+                    width: Dimensions.get("window").width / 3,
+                    //height: 100,
+                    textAlign: "center",
+                    color: defaultNames == "Storage" ? "black" : "white",
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    fontSize: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    backgroundColor:
+                      defaultNames == "Storage" ? "#e7e7e7" : "rgb(0,0,5)",
+                  }}
+                >
+                  Storage
+                </Text>
                 <View
                   style={{
                     color: "black",
@@ -1177,19 +1690,40 @@ const Mobiles = () => {
                     width: 8,
                     height: 8,
                     fontSize: 17,
-                    borderWidth: 1,
+                    //borderWidth: 1,
                     borderRadius: 50,
                     display: cpygetStoragelength.length > 0 ? "flex" : "none",
                   }}
                 ></View>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.filterlistBtn}
+                style={{
+                  backgroundColor: "#e7e7e7",
+                  color: "red",
+                  flexDirection: "row",
+                }}
                 onPress={() => {
                   setDefaultNames("Price"), setShowPrice(!showprice);
                 }}
               >
-                <Text style={styles.filterList}>Price</Text>
+                <Text
+                  style={{
+                    width: Dimensions.get("window").width / 3,
+                    //height: 100,
+                    textAlign: "center",
+                    color: defaultNames == "Price" ? "black" : "white",
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    fontSize: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    backgroundColor:
+                      defaultNames == "Price" ? "#e7e7e7" : "rgb(0,0,5)",
+                  }}
+                >
+                  Price
+                </Text>
                 <View
                   style={{
                     color: "black",
@@ -1200,7 +1734,7 @@ const Mobiles = () => {
                     width: 8,
                     height: 8,
                     fontSize: 17,
-                    borderWidth: 1,
+                    //borderWidth: 1,
                     borderRadius: 50,
                     display: cpygetPricelength.length > 0 ? "flex" : "none",
                   }}
@@ -1263,104 +1797,47 @@ const Mobiles = () => {
                 display: defaultNames === "RAM" ? "flex" : "none",
               }}
             >
-              <TouchableOpacity
-                style={styles.firstFilterDiv}
-                onPress={() => getRAM("1")}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    marginTop: 9,
-                    marginBottom: 9,
-                  }}
-                >
-                  1GB
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.firstFilterDiv}
-                onPress={() => getRAM("2")}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    marginTop: 9,
-                    marginBottom: 9,
-                  }}
-                >
-                  2GB
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.firstFilterDiv}
-                onPress={() => getRAM("3")}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    marginTop: 9,
-                    marginBottom: 9,
-                  }}
-                >
-                  3GB
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.firstFilterDiv}
-                onPress={() => getRAM("4")}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    marginTop: 9,
-                    marginBottom: 9,
-                  }}
-                >
-                  4GB
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.firstFilterDiv}
-                onPress={() => getRAM("6")}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    marginTop: 9,
-                    marginBottom: 9,
-                  }}
-                >
-                  6GB
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.firstFilterDiv}
-                onPress={() => getRAM("8")}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    marginTop: 9,
-                    marginBottom: 9,
-                  }}
-                >
-                  8GB
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.firstFilterDiv}
-                onPress={() => getRAM("12")}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    marginTop: 9,
-                    marginBottom: 9,
-                  }}
-                >
-                  12GB
-                </Text>
-              </TouchableOpacity>
+              {smData.length > 0
+                ? smRAMoptions.map((rams, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getRAM(rams)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 8,
+                          }}
+                        >
+                          {rams + "GB"}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : lpData.length > 0
+                ? lpRAMoptions.map((rams, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getRAM(rams)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 8,
+                          }}
+                        >
+                          {rams + "GB"}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : null}
             </View>
             <View
               style={{
@@ -1372,25 +1849,47 @@ const Mobiles = () => {
                 display: defaultNames === "Storage" ? "flex" : "none",
               }}
             >
-              {storageoptions.map((params, indice) => {
-                return (
-                  <TouchableOpacity
-                    key={indice}
-                    style={styles.firstFilterDiv}
-                    onPress={() => getStoragelist(params)}
-                  >
-                    <Text
-                      style={{
-                        color: "white",
-                        marginTop: 9,
-                        marginBottom: 9,
-                      }}
-                    >
-                      {params + "GB"}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+              {smData.length > 0
+                ? storageoptions.map((params, indice) => {
+                    return (
+                      <TouchableOpacity
+                        key={indice}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getStoragelist(params)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {params + "GB"}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : lpData.length > 0
+                ? lpStorageoptions.map((storages, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getStoragelist(storages)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {storages < 10 ? storages + "TB" : storages + "GB"}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : null}
             </View>
             <View
               style={{
@@ -1402,33 +1901,63 @@ const Mobiles = () => {
                 display: defaultNames === "Price" ? "flex" : "none",
               }}
             >
-              {priceoptions.map((params, indice) => {
-                return (
-                  <TouchableOpacity
-                    key={indice}
-                    style={styles.firstFilterDiv}
-                    onPress={() => getPricelist(params)}
-                  >
-                    <Text
-                      style={{
-                        color: "white",
-                        marginTop: 9,
-                        marginBottom: 9,
-                      }}
-                    >
-                      {"< " +
-                        parseInt(params)
-                          .toLocaleString("en-IN", {
-                            style: "currency",
-                            currency: "INR",
-                            //minimumFractionDigits: 2,
-                            //maximumFractionDigits: 2,
-                          })
-                          .replace(".00", "")}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+              {smData.length > 0
+                ? priceoptions.map((params, indice) => {
+                    return (
+                      <TouchableOpacity
+                        key={indice}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getPricelist(params)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {"< " +
+                            parseInt(params)
+                              .toLocaleString("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                //minimumFractionDigits: 2,
+                                //maximumFractionDigits: 2,
+                              })
+                              .replace(".00", "")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : lpData.length > 0
+                ? lpPriceOptions.map((price, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getPricelist(price)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {"< " +
+                            parseInt(price)
+                              .toLocaleString("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                //minimumFractionDigits: 2,
+                                //maximumFractionDigits: 2,
+                              })
+                              .replace(".00", "")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : null}
             </View>
           </View>
           <View
@@ -1510,7 +2039,11 @@ const Mobiles = () => {
           </View>
           <View style={styles.main}>
             {isloading === false ? (
-              <Modal data={smData.slice(0, pages)} />
+              smData.length > 0 ? (
+                <Modal data={smData.slice(0, pages)} />
+              ) : lpData.length > 0 ? (
+                <Modal data={lpData.slice(0, pages)} />
+              ) : null
             ) : (
               <View style={styles.loading}>
                 <View style={styles.innerLoading}>
@@ -1532,7 +2065,12 @@ const Mobiles = () => {
               backgroundColor: "rgb(255,255,255)",
               alignItems: "center",
               justifyContent: "center",
-              display: pages <= smData.length ? "flex" : "none",
+              display:
+                pages <= smData.length
+                  ? "flex"
+                  : pages <= lpData.length
+                  ? "flex"
+                  : "none",
             }}
           >
             <TouchableOpacity
@@ -1558,9 +2096,11 @@ const styles = StyleSheet.create({
   },
 
   cartIcon: {
-    fontSize: 22,
+    position: "absolute",
+    fontSize: 30,
     marginLeft: 9,
     marginRight: 0,
+    right: "3.5%",
   },
 
   header: {
@@ -1586,6 +2126,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderBottomColor: "black",
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 10,
     alignItems: "center",
   },
   sortIcon: {
@@ -1699,14 +2241,14 @@ const styles = StyleSheet.create({
     width: 70,
     textAlign: "center",
   },
-  filterheader: {},
   filtername: {
     width: 100,
     fontSize: 22,
-    color: "black",
+    color: "rgb(0,0,0)",
   },
   filterIcon: {
     fontSize: 22,
+    color: "rgb(0,0,0)",
   },
   loading: {
     width: Dimensions.get("window").width,
@@ -1743,4 +2285,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Mobiles;
+export default ListView;

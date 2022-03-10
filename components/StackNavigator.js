@@ -1,9 +1,9 @@
 import React from "react";
-import { View, Text } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Home from "./Home/Home";
 import Profile from "./Profile/Profile";
-import Mobiles from "./smartphones/Mobiles";
+import ListView from "./ListContainer/ListView";
+import Main from "./DetailPage/DetailPage";
 import { StackRouter } from "react-navigation";
 
 const Stack = createNativeStackNavigator();
@@ -14,7 +14,8 @@ const StackNavigator = () => {
       <Stack.Group>
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="profile" component={Profile} />
-        <Stack.Screen name="mobile" component={Mobiles} />
+        <Stack.Screen name="Lists" component={ListView} />
+        <Stack.Screen name="Detail" component={Main} />
       </Stack.Group>
     </Stack.Navigator>
   );

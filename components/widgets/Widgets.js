@@ -26,12 +26,7 @@ const Widgets = () => {
               At an affordable Pric
             </Text>
 
-            <Button
-              title="click here"
-              color="#343a40"
-              style={Styles.sm_Btn}
-              onPress={() => navigation.navigate("mobile")}
-            />
+            <Button title="click here" color="#343a40" style={Styles.sm_Btn} />
           </View>
           <View>
             <Image

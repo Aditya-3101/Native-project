@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 
-const Header = () => {
+const Header = (props) => {
   return (
     <View style={styles.headerContainer}>
-      <Text style={styles.header}>NativeCart</Text>
+      <Text style={styles.header}>{props.name}</Text>
     </View>
   );
 };
