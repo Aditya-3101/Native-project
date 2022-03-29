@@ -1,4 +1,6 @@
 import React from "react";
+import "intl";
+import "intl/locale-data/jsonp/en";
 import { useState, useEffect, useContext } from "react";
 import {
   View,
@@ -28,6 +30,8 @@ const Modal = (props) => {
       new Date().toLocaleString().replace(",", "")
   );
 
+  // "$1,000.00"
+
   return (
     <View>
       {data.map((para, index) => {
@@ -36,7 +40,7 @@ const Modal = (props) => {
             key={index}
             onPress={() => {
               setSelected(para.ProductId + para.ProductType);
-              navigation.navigate("Detail");
+              navigation.navigate("Detail", { paths: "normal" });
             }}
           >
             <View
@@ -60,7 +64,11 @@ const Modal = (props) => {
                 <Image
                   style={styles.imgViewer}
                   source={{
-                    uri: para.Simg ? para.Simg : para.LPpriimg,
+                    uri: para.Simg
+                      ? para.Simg
+                      : para.LPpriimg
+                      ? para.LPpriimg
+                      : para.Wpriimg,
                   }}
                 />
               </View>
@@ -69,13 +77,15 @@ const Modal = (props) => {
                   style={{
                     fontSize: para.Sname
                       ? 17
-                      : para.LPname.replace(/\s+/g, "").length < 25
-                      ? 17
-                      : 15,
+                      : para.LPname !== undefined
+                      ? para.LPname.replace(/\s+/g, "").length < 25
+                        ? 17
+                        : 15
+                      : null,
                     textAlign:
                       index % 2 === 0
                         ? "left"
-                        : para.LPname
+                        : para.LPname !== undefined
                         ? "justify"
                         : "right",
                     width: "100%",
@@ -85,7 +95,13 @@ const Modal = (props) => {
                     textTransform: "capitalize",
                   }}
                 >
-                  {para.Sname ? para.Sname : para.LPname}
+                  {para.Sname
+                    ? para.Sname
+                    : para.LPname
+                    ? para.LPname
+                    : para.Wname
+                    ? para.Wname
+                    : null}
                 </Text>
                 <Text
                   style={{
@@ -98,12 +114,20 @@ const Modal = (props) => {
                     marginBottom: 5,
                   }}
                 >
-                  {parseInt(para.Sprice ? para.Sprice : para.LPprice)
+                  {parseInt(
+                    para.Sprice
+                      ? para.Sprice
+                      : para.LPprice
+                      ? para.LPprice
+                      : para.Wprice
+                      ? para.Wprice
+                      : "2000"
+                  )
                     .toLocaleString("en-IN", {
                       style: "currency",
                       currency: "INR",
-                      //minimumFractionDigits: 2,
-                      //maximumFractionDigits: 2,
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
                     })
                     .replace(".00", "")}
                 </Text>
@@ -127,10 +151,22 @@ const Modal = (props) => {
                         padding: 1,
                       }}
                     >
-                      {para.Sosver ? para.Sosver : para.LPprobr}
+                      {para.Sosver
+                        ? para.Sosver
+                        : para.LPprobr
+                        ? para.LPprobr
+                        : para.Wcolor
+                        ? para.Wcolor
+                        : null}
                     </Text>
                     <Text style={{ backgroundColor: "#e9ecef", padding: 1 }}>
-                      {para.Sram ? para.Sram + "GB" : para.LPram + "GB"}
+                      {para.Sram
+                        ? para.Sram + "GB"
+                        : para.LPram
+                        ? para.LPram + "GB"
+                        : para.Sbrand
+                        ? para.Sbrand
+                        : null}
                     </Text>
                   </View>
                   <View
@@ -148,9 +184,13 @@ const Modal = (props) => {
                     <Text style={{ backgroundColor: "#e9ecef", padding: 1 }}>
                       {para.Sstorage
                         ? para.Sstorage + "GB"
-                        : para.LPstorage < 50
-                        ? para.LPstorage + "TB"
-                        : para.LPstorage + "GB"}
+                        : para.LPstorage !== undefined
+                        ? para.LPstorage < 50
+                          ? para.LPstorage + "TB"
+                          : para.LPstorage + "GB"
+                        : para.WavgCapacity
+                        ? para.WavgCapacity + "Kg"
+                        : null}
                     </Text>
                     <Text style={{ backgroundColor: "#e9ecef", padding: 1 }}>
                       {String(para.Sprocessor).includes("Snapdragon")
@@ -160,6 +200,7 @@ const Modal = (props) => {
                         ? String(para.Sprocessor).replace("Bionic chip", "")
                         : ""}
                       {para.LPos}
+                      {para.WRPM !== undefined ? para.WRPM + "RPM" : null}
                     </Text>
                   </View>
                 </View>
@@ -193,8 +234,6 @@ const styles = StyleSheet.create({
     position: "relative",
     width: Dimensions.get("window").width / 2,
     height: 120,
-    //backgroundColor: "cyan",
-    //height: Dimensions.get("window").height / 5,
     position: "relative",
     alignContent: "space-around",
     justifyContent: "space-evenly",

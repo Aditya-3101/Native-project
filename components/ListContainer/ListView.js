@@ -13,25 +13,29 @@ import {
   BackHandler,
   Platform,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useLayoutEffect } from "react";
 import { MobileContext } from "../contexts/MobileContext";
 import { LaptopContext } from "../contexts/LaptopContext";
 import { IntakeContext } from "../contexts/Intake";
 import { SortPhonesContext } from "../contexts/SphonesContext";
 import { CartContext } from "../contexts/Getcart";
+import { WmacContext } from "../contexts/WmachineContext";
 import Icon from "react-native-vector-icons/FontAwesome";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import Modal from "./Modal";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 import Header from "../Header";
 import { borderEndColor } from "react-native/Libraries/Components/View/ReactNativeStyleAttributes";
 
 const ListView = (props) => {
+  const isFocused = useIsFocused();
   const [smData, setSmData] = useContext(MobileContext);
 
   const [smbData, setSmbData] = useContext(SortPhonesContext);
 
   const [lpData, setLpData] = useContext(LaptopContext);
+
+  const [wdata, setWdata] = useContext(WmacContext);
 
   const [intake, setIntake] = useContext(IntakeContext);
 
@@ -79,6 +83,14 @@ const ListView = (props) => {
 
   const [storageoptions, setStorageOptions] = useState([16, 32, 64, 128, 256]);
 
+  const [wCapacity, setWcapacity] = useState([
+    "6Kg",
+    "7Kg",
+    "8Kg",
+    "9Kg",
+    "10Kg",
+  ]);
+
   const lpStorageoptions = [256, 512, 1, 2];
 
   const smRAMoptions = [2, 3, 4, 6, 8, 12];
@@ -87,9 +99,16 @@ const ListView = (props) => {
 
   const [isloading, setLoading] = useState(true);
 
+  const [functionality, setFunctionality] = useState([
+    "Semi Automatic",
+    "Fully Automatic",
+  ]);
+
   const priceoptions = [10000, 20000, 40000, 80000, 100000];
 
   const lpPriceOptions = [30000, 50000, 80000, 200000, 400000];
+
+  const wPriceOptions = [10000, 30000, 50000, 70000];
 
   const navigation = useNavigation();
 
@@ -118,9 +137,11 @@ const ListView = (props) => {
 
   //dessortByAge(smData);
 
-  console.log("intake" + intake);
+  //console.log(intake);
 
-  useEffect(() => {
+  //console.log("intake" + intake);
+
+  useLayoutEffect(() => {
     let isMounted = true;
     if (intake === "mobiles") {
       isMounted = true;
@@ -165,25 +186,86 @@ const ListView = (props) => {
         .catch((error) => {
           console.log(error);
         });
+    } else if (intake === "Wmachine") {
+      isMounted = true;
+      fetch("http://192.168.43.29:4000/api/main/wmachines")
+        .then((res) => res.json())
+        .then((result) => {
+          console.log(result);
+          setLoading(false);
+          isMounted ? setWdata(result) : null;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      fetch("http://192.168.43.29:4000/api/main/wmachines/sort/Brands")
+        .then((res) => res.json())
+        .then((result) => {
+          setSmbData(result);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else if (String(intake).length > 9) {
+      isMounted = true;
+      const getThis = String(intake).split(",");
+      if (getThis[0] === "Mobiles") {
+        fetch(`http://192.168.43.29:4000/api/main/search?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((result) => {
+            console.log(result.ProductType);
+            isMounted ? setSmData(result) : null;
+            setLoading(false);
+          })
+          .catch((err) => console.log(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Laptops") {
+        fetch(`http://192.168.43.29:4000/api/main/search/lp?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setLpData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/lp/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Wmachine") {
+        fetch(`http://192.168.43.29:4000/api/main/search/wm?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setWdata(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/wm/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      }
     }
-
-    if ((Platform.OS = "android")) {
-      BackHandler.addEventListener("hardwareBackPress", () => {
-        //console.log("back btn pressed");
-        smData.length > 0
-          ? setSmData([])
-          : lpData.length > 0
-          ? setLpData([])
-          : null;
-      });
-
-      // return () => {
-      //   BackHandler.removeEventListener("hardwareBackPress", () => {
-      //     //console.log("back btn pressed");
-      //     setSmData("");
-      //   });
-    }
-    //}
     return () => {
       isMounted = false;
     };
@@ -204,6 +286,15 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((Result) => {
             setLpData(Result);
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+      : wdata.length > 0
+      ? fetch("http://192.168.43.29:4000/api/main/wmachines")
+          .then((res) => res.json())
+          .then((Result) => {
+            setWdata(Result);
           })
           .catch((err) => {
             console.log(err);
@@ -257,7 +348,9 @@ const ListView = (props) => {
       if (
         (getMultifilters.length > 1) &
         (getRam.length > 0) &
-        (getBrands.length == 0)
+        (getBrands.length > 0) &
+        (getStorage.length == 0) &
+        (getPrice.length == 0)
       ) {
         const getnames = getMultifilters.join();
         console.log(getnames + " line 138");
@@ -273,6 +366,7 @@ const ListView = (props) => {
           .then((Result) => {
             setSmData(Result);
             setGetMultifilters([]);
+            setUnClicked(false);
           })
           .catch((error) => {
             console.log(error);
@@ -294,6 +388,7 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((Result) => {
             setSmData(Result);
+            setUnClicked(false);
             setGetMultifilters([]);
           })
           .catch((error) => {
@@ -394,6 +489,7 @@ const ListView = (props) => {
           .then((Result) => {
             setLpData(Result);
             setGetMultifilters([]);
+            setUnClicked(false);
           })
           .catch((error) => {
             console.log(error);
@@ -417,6 +513,7 @@ const ListView = (props) => {
           .then((Result) => {
             console.log(Result);
             setLpData(Result);
+            setUnClicked(false);
             setGetMultifilters([]);
           })
           .catch((error) => {
@@ -502,6 +599,149 @@ const ListView = (props) => {
             console.log(error);
           });
       }
+    } else if (wdata.length > 1) {
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length === 0) &
+        (getBrands.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+        console.log(getnames + " line 138");
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/names/func?names=${
+            functionality.includes(getMultifilters[0]) == true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&func=${
+            functionality.includes(getMultifilters[1]) == true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setWdata(Result);
+            setGetMultifilters([]);
+            setUnClicked((prev) => !prev);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+        console.log(
+          getnames + "multiple queries with ram storage and brandName"
+        );
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/names/func/capacity?names=${
+            functionality.includes(getMultifilters[0]) === true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&func=${
+            functionality.includes(getMultifilters[1]) === true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&cap=${getStorage.join().match(/\d+/g).join("")}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            console.log(Result);
+            setLpData(Result);
+            setGetMultifilters([]);
+            setUnClicked(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getBrands.length > 0) &
+        (getRam.length == 0) &
+        (getStorage.length === 0) &
+        (getPrice.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/names?brand=${getBrands.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setWdata(result);
+            console.log(wdata.length);
+            cpygetbrands.push(result);
+            setCpyGetBrandsLength(getBrands);
+            setGetBrands([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getRam.length > 0) &
+        (getBrands.length == 0) &
+        (getPrice.length == 0) &
+        (getStorage.length == 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/functionality?types=${getRam.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setWdata(result);
+            //console.log("RAM Section", result);
+            setCpyGetRamsLength(getRam);
+            setGetRam([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getStorage.length > 0) &
+        (getRam.length === 0) &
+        (getPrice.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/capacity?storage=${getStorage.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setWdata(result);
+            setCpyGetStorageLength(
+              getStorage.length > 2 ? getStorage.slice(0, 2) : getStorage
+            );
+            setGetStorage([]);
+            setGetMultifilters([]);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else if (
+        (getPrice.length > 0) &
+        (getRam.length === 0) &
+        (getStorage.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/Price?price=${getPrice.join()}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setWdata(Result);
+            setCpyGetPriceLength(getPrice);
+            setGetPrice([]);
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
     }
   };
 
@@ -516,14 +756,16 @@ const ListView = (props) => {
                 ? "Mobiles"
                 : intake == "Laptops"
                 ? "Laptops"
+                : intake == "Wmachine"
+                ? "Washing Machines"
                 : null
             }
           />
           <View style={styles.header}>
-            <Icon
-              name="arrow-left"
+            <MaterialIcon
+              name="arrow-back-ios"
               color="white"
-              fontsize={50}
+              //fontsize={50}
               style={styles.backIcon}
               onPress={() => {
                 navigation.navigate("Home"),
@@ -543,8 +785,9 @@ const ListView = (props) => {
             <MaterialIcon
               name="local-mall"
               color="white"
-              fontsize={54}
+              //fontsize={54}
               style={styles.cartIcon}
+              onPress={() => navigation.navigate("carts")}
             />
             <Text
               style={{
@@ -554,7 +797,7 @@ const ListView = (props) => {
                 borderRadius: 50,
                 color: "black",
                 marginLeft: "auto",
-                marginTop: -20,
+                marginTop: -40,
                 marginRight: -13,
                 fontSize: 13,
                 fontWeight: "bold",
@@ -675,6 +918,14 @@ const ListView = (props) => {
                       setSortType("Price:Low to High");
                       return a.LPprice - b.LPprice;
                     });
+                  } else if (wdata.length > 1) {
+                    wdata.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(true);
+                      setSortType("Price:Low to High");
+                      return a.Wprice - b.Wprice;
+                    });
                   }
                 }}
               >
@@ -702,6 +953,12 @@ const ListView = (props) => {
                     });
                   } else if (lpData.length > 1) {
                     lpData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(false);
+                      return a.ProductId - b.ProductId;
+                    });
+                  } else if (wdata.length > 1) {
+                    wdata.sort((a, b) => {
                       setShowCart(false);
                       setShowRemover(false);
                       return a.ProductId - b.ProductId;
@@ -740,6 +997,14 @@ const ListView = (props) => {
                       setSortLowtoHigh(false);
                       setSortType("Price:High to Low");
                       return b.LPprice - a.LPprice;
+                    });
+                  } else if (wdata.length > 1) {
+                    wdata.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(false);
+                      setSortType("Price:High to Low");
+                      return b.Wprice - a.Wprice;
                     });
                   }
                 }}
@@ -804,6 +1069,12 @@ const ListView = (props) => {
                     setShowRemover(false);
                     return a.ProductId - b.ProductId;
                   });
+                } else if (wdata.length > 1) {
+                  wdata.sort((a, b) => {
+                    setSortType("Relevance");
+                    setShowRemover(false);
+                    return a.ProductId - b.ProductId;
+                  });
                 }
               }}
             >
@@ -837,6 +1108,12 @@ const ListView = (props) => {
                     setShowRemover(false);
                     return a.ProductId - b.ProductId;
                   });
+                } else if (wdata.length > 1) {
+                  wdata.sort((a, b) => {
+                    setSortType("Relevance");
+                    setShowRemover(false);
+                    return a.ProductId - b.ProductId;
+                  });
                 }
               }}
             >
@@ -851,7 +1128,7 @@ const ListView = (props) => {
               //display: showFilters == true ? "flex" : "none",
               justifyContent: "center",
               flexDirection: "row",
-              backgroundColor: "red",
+              //backgroundColor: "red",
               display: "none",
             }}
           >
@@ -880,6 +1157,7 @@ const ListView = (props) => {
             style={{
               width: Dimensions.get("window").width,
               minHeight: 70,
+              //backgroundColor: "red",
               maxHeight: 120,
               justifyContent: "space-evenly",
               //backgroundColor: "cyan",
@@ -948,6 +1226,22 @@ const ListView = (props) => {
                             })
                             .catch((error) => {
                               console.log(error);
+                            })
+                        : wdata.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setWdata(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((Err) => {
+                              console.log(Err);
                             })
                         : null;
                     }}
@@ -1030,6 +1324,22 @@ const ListView = (props) => {
                             .catch((error) => {
                               console.log(error);
                             })
+                        : wdata.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setWdata(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
                         : null;
                     }}
                   >
@@ -1100,7 +1410,8 @@ const ListView = (props) => {
                     key={index}
                     style={{
                       flexDirection: "row",
-                      width: 100,
+                      minWidth: 100,
+                      maxWidth: 180,
                       height: 30,
                       backgroundColor: "rgb(0,0,0)",
                       alignItems: "center",
@@ -1148,6 +1459,24 @@ const ListView = (props) => {
                             .catch((error) => {
                               console.log(error);
                             })
+                        : wdata.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/func/sName/rNames?sName=${pars}&rName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              console.log(Result);
+                              setWdata(Result);
+                              //cpygetBrandslength.length - 1;
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              ); // will return ['A', 'C']
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
                         : null;
                     }}
                   >
@@ -1168,9 +1497,9 @@ const ListView = (props) => {
                         /"/g,
                         ""
                       )}*/}
-                      {pars.Sram
-                        ? String(pars.Sram).replace(/"/g, "").concat("GB")
-                        : String(pars).replace(/"/g, "").concat("GB")}
+                      {pars ^ (0 == pars)
+                        ? String(pars).replace(/"/g, "").concat("GB")
+                        : String(pars).replace(/"/g, "").concat("")}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -1258,7 +1587,8 @@ const ListView = (props) => {
                     key={index}
                     style={{
                       flexDirection: "row",
-                      width: 100,
+                      minWidth: 100,
+                      maxWidth: 130,
                       height: 30,
                       backgroundColor: "rgb(0,0,0)",
                       alignItems: "center",
@@ -1287,9 +1617,9 @@ const ListView = (props) => {
                         textAlign: "center",
                       }}
                     >
-                      {pars.Sram
-                        ? String(pars.Sram).replace(/"/g, "").concat("GB")
-                        : String(pars).replace(/"/g, "").concat("GB")}
+                      {pars ^ (0 == pars)
+                        ? String(pars).replace(/"/g, "").concat("GB")
+                        : String(pars).replace(/"/g, "").concat("")}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -1352,6 +1682,28 @@ const ListView = (props) => {
                             .catch((error) => {
                               console.log(error);
                             })
+                        : wdata.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              console.log(Result);
+                              setWdata(Result);
+                              console.log(
+                                cpygetStoragelength
+                                  .join()
+                                  .replace(`${pars}`, "")
+                              );
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
                         : null;
                     }}
                   >
@@ -1368,9 +1720,9 @@ const ListView = (props) => {
                         textAlign: "center",
                       }}
                     >
-                      {pars.Sstorage
-                        ? String(pars.Sstorage).replace(/"/g, "").concat("GB")
-                        : String(pars).replace(/"/g, "").concat("GB")}
+                      {pars ^ (0 == pars)
+                        ? String(pars).replace(/"/g, "").concat("GB")
+                        : String(pars).replace(/"/g, "").concat("")}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -1406,9 +1758,9 @@ const ListView = (props) => {
                         textAlign: "center",
                       }}
                     >
-                      {pars.Sstorage
-                        ? String(pars.Sstorage).replace(/"/g, "").concat("GB")
-                        : String(pars).replace(/"/g, "").concat("GB")}
+                      {pars ^ (0 == true)
+                        ? String(pars).replace(/"/g, "").concat("GB")
+                        : String(pars).replace(/"/g, "").concat("")}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -1464,6 +1816,8 @@ const ListView = (props) => {
                             .catch((error) => {
                               console.log(error);
                             })
+                        : wdata.length > 0
+                        ? Regain
                         : null;
                     }}
                   >
@@ -1480,9 +1834,9 @@ const ListView = (props) => {
                         textAlign: "center",
                       }}
                     >
-                      {pars.Sstorage
-                        ? String(pars.Sstorage).replace(/"/g, "").concat("GB")
-                        : String(pars).replace(/"/g, "").concat("GB")}
+                      {pars ^ (0 == true)
+                        ? String(pars).replace(/"/g, "").concat("GB")
+                        : setUnClicked(false)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -1636,7 +1990,7 @@ const ListView = (props) => {
                       defaultNames == "RAM" ? "#e7e7e7" : "rgb(0,0,5)",
                   }}
                 >
-                  RAM{" "}
+                  {wdata.length > 0 ? "Functionality" : "RAM"}
                 </Text>
                 <View
                   style={{
@@ -1678,7 +2032,7 @@ const ListView = (props) => {
                       defaultNames == "Storage" ? "#e7e7e7" : "rgb(0,0,5)",
                   }}
                 >
-                  Storage
+                  {wdata.length > 0 ? "Capacity" : "Storage"}
                 </Text>
                 <View
                   style={{
@@ -1749,6 +2103,7 @@ const ListView = (props) => {
                 height: 400,
                 justifyContent: "space-evenly",
                 alignItems: "center",
+
                 display: defaultNames === "Brand" ? "flex" : "none",
               }}
             >
@@ -1837,6 +2192,27 @@ const ListView = (props) => {
                       </TouchableOpacity>
                     );
                   })
+                : wdata.length > 0
+                ? functionality.map((func, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getRAM(func)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 8,
+                            textAlign: "center",
+                          }}
+                        >
+                          {func}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
                 : null}
             </View>
             <View
@@ -1889,6 +2265,26 @@ const ListView = (props) => {
                       </TouchableOpacity>
                     );
                   })
+                : wdata.length > 0
+                ? wCapacity.map((storages, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getStoragelist(storages)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {storages ? "< " + storages : null}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
                 : null}
             </View>
             <View
@@ -1931,6 +2327,34 @@ const ListView = (props) => {
                   })
                 : lpData.length > 0
                 ? lpPriceOptions.map((price, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getPricelist(price)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {"< " +
+                            parseInt(price)
+                              .toLocaleString("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                //minimumFractionDigits: 2,
+                                //maximumFractionDigits: 2,
+                              })
+                              .replace(".00", "")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : wdata.length > 0
+                ? wPriceOptions.map((price, index) => {
                     return (
                       <TouchableOpacity
                         key={index}
@@ -2043,6 +2467,8 @@ const ListView = (props) => {
                 <Modal data={smData.slice(0, pages)} />
               ) : lpData.length > 0 ? (
                 <Modal data={lpData.slice(0, pages)} />
+              ) : wdata.length > 0 ? (
+                <Modal data={wdata.slice(0, pages)} />
               ) : null
             ) : (
               <View style={styles.loading}>
@@ -2092,7 +2518,7 @@ const styles = StyleSheet.create({
   backIcon: {
     width: 30,
     height: 30,
-    fontSize: 22,
+    fontSize: 32,
   },
 
   cartIcon: {

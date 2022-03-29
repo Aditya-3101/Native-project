@@ -12,6 +12,7 @@ import {
   BackHandler,
   ToastAndroid,
   StatusBar,
+  TouchableWithoutFeedback,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
@@ -22,12 +23,14 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
 import ListView from "../ListContainer/ListView";
 
-const Main = () => {
+const Main = (props) => {
   const navigation = useNavigation();
 
   const ref = useRef();
 
   const [selected, setSelected] = useContext(DetailContext);
+
+  const [fullSizeImg, setFullSizeImg] = useState(false);
 
   const [items, setItems] = useContext(CartContext);
 
@@ -66,6 +69,23 @@ const Main = () => {
     "Connectivity Features",
     "Additional Features",
   ];
+
+  const wDescription = ["General", "Convenience Features", "Dimensions"];
+
+  const wGeneral = [
+    "Brand",
+    "Name",
+    "Functionality",
+    "Energy Rating",
+    "Washing Capacity",
+    "Maximum Spin Speed",
+    "Color",
+    "In-built Heater",
+  ];
+
+  const wConvenience = ["Digital Display"];
+
+  const wDimensions = ["Width", "Height", "Weight"];
 
   const Lpdisplay = [
     "Screen Size",
@@ -125,7 +145,7 @@ const Main = () => {
     "Processor",
     "Operating System",
     "Operating System Version",
-    "System Operating System",
+    "System User Interface",
   ];
 
   const camHeader = [
@@ -159,20 +179,91 @@ const Main = () => {
 
   const [anotherDetail, setAnotherDetail] = useState("Battery");
 
+  const [allPhotos, setAllPhotos] = useState([]);
+
+  const [photosLinks, setPhotosLinks] = useState([]);
+
+  const [active, setActive] = useState(0);
+
   const inputType = String(selected).replace(/[^a-zA-Z ]/g, "");
 
   //console.log(inputType);
+
+  const [checkPath, setCheckPath] = useState();
 
   const inputid = String(selected).replace(/[^0-9]/g, "");
 
   //console.log(inputid);
 
-  const Addthis = (data) => {
-    setItems((prev) => [...prev, data]);
-    setText(true);
-  };
+  useEffect(() => {
+    if (props.route.params.paths == "viaCart") {
+      setText(true);
+    } else if (props.route.params.paths == "normal") {
+      setText(false);
+    }
+  }, [props.route.params.paths]);
 
   useEffect(() => {
+    if (items.length == 0) {
+      setText(false); //to invert the state of text when length of items is zero
+    }
+  }, [items]);
+
+  useEffect(() => {
+    allPhotos.map((img) => {
+      //setPhotosLinks(img.SmPhotos);
+      setPhotosLinks(String(img.SmPhotos).split("|||"));
+    });
+    console.log(allPhotos);
+  }, [allPhotos]);
+
+  useEffect(() => {
+    console.log(photosLinks);
+  }, [photosLinks]);
+
+  console.log(
+    props.route.params !== undefined ? props.route.params.paths : "NA"
+  );
+
+  useEffect(() => {
+    if (inputType === "Mobile") {
+      fetch(`http://192.168.43.29:4000/api/main/smartphones/get?id=${inputid}`)
+        .then((res) => res.json())
+        .then((result) => {
+          setData(result);
+          setLoading(false);
+          setIntake("mobiles");
+          //console.log(result);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      fetch(
+        `http://192.168.43.29:4000/api/main/smartphones/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    if (inputType === "Laptops") {
+      fetch(`http://192.168.43.29:4000/api/main/laptops/get?id=${inputid}`)
+        .then((res) => res.json())
+        .then((Result) => {
+          setData(Result);
+          setLoading(false);
+          setIntake("Laptops");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, []);
+
+  React.useLayoutEffect(() => {
     if (inputType === "Mobile") {
       fetch(`http://192.168.43.29:4000/api/main/smartphones/get?id=${inputid}`)
         .then((res) => res.json())
@@ -198,7 +289,40 @@ const Main = () => {
           console.log(err);
         });
     }
-  }, []);
+    if (inputType === "Washing Machine") {
+      fetch(`http://192.168.43.29:4000/api/main/wmachines/get?id=${inputid}`)
+        .then((res) => res.json())
+        .then((result) => {
+          setData(result);
+          setLoading(false);
+          setIntake("Washing Machine");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [selected]);
+
+  BackHandler.addEventListener("hardwareBackPress", () => {
+    //console.log("back key pressed in detailpage");
+    //navigation.goBack();
+  });
+
+  const Addthis = () => {
+    //console.log(data);
+    setItems((prev) => [...prev, data]);
+    //setItems([...items, data]);
+    setText(true);
+  };
+
+  const changeActivate = ({ nativeEvent }) => {
+    const slide = Math.ceil(
+      nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width
+    );
+    if (slide !== active) {
+      setActive(slide);
+    }
+  };
 
   return (
     <View style={styles.overView}>
@@ -243,6 +367,7 @@ const Main = () => {
                   name="local-mall"
                   color="rgba(0,0,0,0.7)"
                   style={styles.leftIcon}
+                  onPress={() => navigation.navigate("carts")}
                 />
                 <Text
                   style={{
@@ -267,17 +392,98 @@ const Main = () => {
               {data.map((para, index) => {
                 return (
                   <View key={index}>
-                    <View style={styles.imgContainer}>
-                      <Image
-                        source={{
-                          uri: para.Simg
-                            ? para.Simg
-                            : para.LPpriimg
-                            ? para.LPpriimg
-                            : null,
-                        }}
-                        style={styles.priimg}
-                      />
+                    <View
+                      style={{
+                        width: Dimensions.get("window").width,
+                        minHeight:
+                          fullSizeImg == true
+                            ? Dimensions.get("window").height - 65
+                            : 230,
+                        maxHeight:
+                          fullSizeImg == true
+                            ? Dimensions.get("window").height - 65
+                            : 285,
+                        paddingTop: 5,
+                        paddingBottom: 5,
+                        backgroundColor: "rgb(256,256,256)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <ScrollView
+                        horizontal={true}
+                        onScroll={changeActivate}
+                        pagingEnabled
+                        showsHorizontalScrollIndicator={false}
+                      >
+                        {photosLinks.map((photo, k) => {
+                          return (
+                            <View
+                              key={k}
+                              style={{
+                                width: Dimensions.get("window").width,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <TouchableWithoutFeedback
+                                onPress={() => setFullSizeImg(!fullSizeImg)}
+                              >
+                                <Image
+                                  source={{ uri: photo }}
+                                  style={{
+                                    width: fullSizeImg == true ? 350 : 255,
+                                    height: fullSizeImg == true ? 350 : 255,
+                                    resizeMode: "contain",
+                                    marginLeft: "auto",
+                                    marginRight: "auto",
+                                    marginTop: 10,
+                                    marginBottom: 10,
+                                  }}
+                                />
+                              </TouchableWithoutFeedback>
+                            </View>
+                          );
+                        })}
+                      </ScrollView>
+                      <View style={{ flexDirection: "row" }}>
+                        {photosLinks.map((count, k) => {
+                          return (
+                            <View
+                              key={k}
+                              style={{
+                                width: 30,
+                                height: 2,
+                                marginTop: 5,
+                                marginBottom: 5,
+                                backgroundColor:
+                                  k === active
+                                    ? "rgba(0,0,0,0.95)"
+                                    : "rgba(0,0,0,0.15)",
+                              }}
+                            ></View>
+                          );
+                        })}
+                      </View>
+
+                      {/* <Image
+                          source={{
+                            uri: para.Simg
+                              ? para.Simg
+                              : para.LPpriimg
+                              ? para.LPpriimg
+                              : para.Wpriimg
+                              ? para.Wpriimg
+                              : null,
+                          }}
+                          style={{
+                            width: fullSizeImg == true ? 350 : 255,
+                            height: fullSizeImg == true ? 350 : 255,
+                            resizeMode: "contain",
+                            marginTop: 10,
+                            marginBottom: 10,
+                          }}
+                        /> */}
                     </View>
                     <View
                       style={{
@@ -305,6 +511,8 @@ const Main = () => {
                             ? para.Sname
                             : para.LPname
                             ? para.LPname
+                            : para.Wname
+                            ? para.Wname
                             : null}
                         </Text>
                         <Text
@@ -329,6 +537,8 @@ const Main = () => {
                                   ? para.LPstorage + "TB"
                                   : para.LPstorage + "GB"
                               })`
+                            : para.Wname
+                            ? `(${para.Wcolor}/${para.WRPM}RPM)`
                             : null}
                         </Text>
                         <Text
@@ -357,6 +567,13 @@ const Main = () => {
                                   currency: "INR",
                                 })
                                 .replace(".00", "")
+                            : para.Wprice
+                            ? parseInt(para.Wprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
                             : null}
                         </Text>
                       </View>
@@ -368,6 +585,8 @@ const Main = () => {
                                 ? "photo-camera"
                                 : para.LPdisplaySize
                                 ? "personal-video"
+                                : para.WRPM
+                                ? "speed"
                                 : null
                             }
                             color="rgb(50,50,50)"
@@ -378,12 +597,22 @@ const Main = () => {
                               ? para.SpriCamera
                               : para.LPdisplaySize
                               ? para.LPdisplaySize + " inch"
+                              : para.WRPM
+                              ? para.WRPM + "RPM"
                               : null}
                           </Text>
                         </View>
                         <View style={styles.modalIconContainer}>
                           <MaterialIcon
-                            name="storage"
+                            name={
+                              para.Sstorage
+                                ? "storage"
+                                : para.LPstorage
+                                ? "storage"
+                                : para.WmRatings
+                                ? "bolt"
+                                : null
+                            }
                             color="rgb(50,50,50)"
                             style={styles.modalIcon}
                           />
@@ -394,12 +623,22 @@ const Main = () => {
                               ? (para.LPstorage > 0) & (para.LPstorage < 10)
                                 ? para.LPstorage + "TB"
                                 : para.LPstorage + "GB"
+                              : para.WmRatings
+                              ? para.WmRatings + " Energy Rating"
                               : null}
                           </Text>
                         </View>
                         <View style={styles.modalIconContainer}>
                           <MaterialIcon
-                            name="memory"
+                            name={
+                              para.Sprocessor
+                                ? "memory"
+                                : para.LPprocess
+                                ? "memory"
+                                : para.Wmtype
+                                ? "functions"
+                                : null
+                            }
                             color="rgb(50,50,50)"
                             style={styles.modalIcon}
                           />
@@ -408,6 +647,8 @@ const Main = () => {
                               ? para.Sprocessor
                               : para.LPprocess
                               ? para.LPprocess
+                              : para.Wmtype
+                              ? para.Wmtype
                               : null}
                           </Text>
                         </View>
@@ -416,14 +657,20 @@ const Main = () => {
                         <TouchableOpacity
                           style={styles.btns}
                           onPress={() => {
-                            Addthis();
-                            ToastAndroid.showWithGravityAndOffset(
-                              "Item added to cart",
-                              ToastAndroid.SHORT,
-                              ToastAndroid.BOTTOM,
-                              25,
-                              50
-                            );
+                            if (text === false) {
+                              console.log("text " + text);
+                              Addthis();
+                              ToastAndroid.showWithGravityAndOffset(
+                                "Item added to cart",
+                                ToastAndroid.SHORT,
+                                ToastAndroid.BOTTOM,
+                                25,
+                                50
+                              );
+                            } else {
+                              console.log("text is", +text);
+                              navigation.navigate("carts");
+                            }
                           }}
                         >
                           <Text
@@ -459,11 +706,27 @@ const Main = () => {
                             fontSize: 19,
                             fontWeight: "bold",
                             color: "rgba(0,0,0,0.9)",
+                            display: para.Wname ? "none" : "flex",
                           }}
                         >
                           Details
                         </Text>
-                        <View style={styles.minidivider}></View>
+                        <View
+                          style={{
+                            position: "absolute",
+                            width: Dimensions.get("window").width / 3,
+                            //borderWidth: 1,
+                            //borderColor: "red",
+                            alignSelf: "center",
+                            height: 1,
+                            backgroundColor: "rgba(30,30,30,0.8)",
+                            top: 40,
+                            bottom: 40,
+                            right: "auto",
+                            left: "auto",
+                            display: para.Wname ? "none" : "flex",
+                          }}
+                        ></View>
                         <View style={styles.headerContainer}>
                           <View style={styles.productheader}>
                             {para.Sname
@@ -703,130 +966,134 @@ const Main = () => {
                                 </Text>
                               </View>
                             ) : null}
-                            {lpFeatures
-                              .map((params, indice) => {
-                                return (
-                                  <View key={indice} style={styles.modals}>
-                                    <TouchableOpacity
-                                      style={{
-                                        //width:
-                                        //Dimensions.get("window").width / 3.5,
-                                        width: "100%",
-                                        position: "absolute",
-                                        alignItems: "center",
-                                        borderWidth: 1,
-                                        borderColor: "rgb(30,30,30)",
-                                        padding: 4,
-                                        borderRadius: 35,
-                                        textAlign: "center",
-                                        textAlignVertical: "center",
-                                        backgroundColor: "Black",
-                                        backgroundColor:
-                                          lpdetail === params
-                                            ? "white"
-                                            : "black",
-                                      }}
-                                      onPress={() => {
-                                        setLpDetail(params);
-                                      }}
-                                    >
-                                      <Text
-                                        style={{
-                                          fontSize: 15,
-                                          color:
-                                            lpdetail === params
-                                              ? "black"
-                                              : "white",
-                                        }}
-                                      >
-                                        {params}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  </View>
-                                );
-                              })
-                              .slice(0, 3)}
+                            {para.LPname
+                              ? lpFeatures
+                                  .map((params, indice) => {
+                                    return (
+                                      <View key={indice} style={styles.modals}>
+                                        <TouchableOpacity
+                                          style={{
+                                            //width:
+                                            //Dimensions.get("window").width / 3.5,
+                                            width: "100%",
+                                            position: "absolute",
+                                            alignItems: "center",
+                                            borderWidth: 1,
+                                            borderColor: "rgb(30,30,30)",
+                                            padding: 4,
+                                            borderRadius: 35,
+                                            textAlign: "center",
+                                            textAlignVertical: "center",
+                                            backgroundColor: "Black",
+                                            backgroundColor:
+                                              lpdetail === params
+                                                ? "white"
+                                                : "black",
+                                          }}
+                                          onPress={() => {
+                                            setLpDetail(params);
+                                          }}
+                                        >
+                                          <Text
+                                            style={{
+                                              fontSize: 15,
+                                              color:
+                                                lpdetail === params
+                                                  ? "black"
+                                                  : "white",
+                                            }}
+                                          >
+                                            {params}
+                                          </Text>
+                                        </TouchableOpacity>
+                                      </View>
+                                    );
+                                  })
+                                  .slice(0, 3)
+                              : null}
 
-                            <View style={styles.modalData}>
-                              <Text
-                                style={{
-                                  textAlign: "center",
-                                }}
-                              >
-                                {lpdetail === "Display" ? (
-                                  <View style={styles.caming}>
-                                    <Image
-                                      style={{
-                                        //minWidth: 180,
-                                        //maxWidth: 210,
-                                        width: "100%",
-                                        //Dimensions.get("window").width / 1.6,
-                                        minHeight: 190,
-                                        maxHeight: 220,
-                                        resizeMode: "contain",
-                                      }}
-                                      source={{
-                                        uri: para.LPdisplayImgs,
-                                      }}
-                                    />
-                                    <Text style={styles.camingtext}>
-                                      {para.LPdisplaySize +
-                                        "inch\n" +
-                                        para.LPdisplayType}
-                                    </Text>
-                                  </View>
-                                ) : lpdetail === "Processor" ? (
-                                  <View style={styles.caming}>
-                                    <Image
-                                      style={{
-                                        //minWidth: 180,
-                                        //maxWidth: 210,
-                                        width: "100%",
-                                        //Dimensions.get("window").width / 1.6,
-                                        minHeight: 195,
-                                        maxHeight: 220,
-                                        resizeMode: "cover",
-                                      }}
-                                      source={{
-                                        uri: para.LPprocessorImgs,
-                                      }}
-                                    />
-                                    <Text style={styles.camingtext}>
-                                      {para.LPprocess}
-                                    </Text>
-                                  </View>
-                                ) : lpdetail === "RAM" ? (
-                                  <View style={styles.caming}>
-                                    <Image
-                                      style={{
-                                        //minWidth: 180,
-                                        //maxWidth: 210,
-                                        width: "100%",
-                                        //Dimensions.get("window").width / 1.6,
-                                        minHeight: 220,
-                                        maxHeight: 240,
-                                        //borderWidth: 1,
-                                        //borderColor: "red",
-                                        resizeMode: "contain",
-                                      }}
-                                      source={{
-                                        uri: para.LPramImgs,
-                                      }}
-                                    />
-                                    <Text style={styles.camingtext}>
-                                      {para.LPram +
-                                        "GB " +
-                                        para.LPramType +
-                                        "\nExpandable : " +
-                                        para.LPexram +
-                                        "GB"}
-                                    </Text>
-                                  </View>
-                                ) : (
-                                  "null"
-                                )}
-                              </Text>
-                            </View>
+                            {para.LPname ? (
+                              <View style={styles.modalData}>
+                                <Text
+                                  style={{
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  {lpdetail === "Display" ? (
+                                    <View style={styles.caming}>
+                                      <Image
+                                        style={{
+                                          //minWidth: 180,
+                                          //maxWidth: 210,
+                                          width: "100%",
+                                          //Dimensions.get("window").width / 1.6,
+                                          minHeight: 190,
+                                          maxHeight: 220,
+                                          resizeMode: "contain",
+                                        }}
+                                        source={{
+                                          uri: para.LPdisplayImgs,
+                                        }}
+                                      />
+                                      <Text style={styles.camingtext}>
+                                        {para.LPdisplaySize +
+                                          "inch\n" +
+                                          para.LPdisplayType}
+                                      </Text>
+                                    </View>
+                                  ) : lpdetail === "Processor" ? (
+                                    <View style={styles.caming}>
+                                      <Image
+                                        style={{
+                                          //minWidth: 180,
+                                          //maxWidth: 210,
+                                          width: "100%",
+                                          //Dimensions.get("window").width / 1.6,
+                                          minHeight: 195,
+                                          maxHeight: 220,
+                                          resizeMode: "cover",
+                                        }}
+                                        source={{
+                                          uri: para.LPprocessorImgs,
+                                        }}
+                                      />
+                                      <Text style={styles.camingtext}>
+                                        {para.LPprocess}
+                                      </Text>
+                                    </View>
+                                  ) : lpdetail === "RAM" ? (
+                                    <View style={styles.caming}>
+                                      <Image
+                                        style={{
+                                          //minWidth: 180,
+                                          //maxWidth: 210,
+                                          width: "100%",
+                                          //Dimensions.get("window").width / 1.6,
+                                          minHeight: 220,
+                                          maxHeight: 240,
+                                          //borderWidth: 1,
+                                          //borderColor: "red",
+                                          resizeMode: "contain",
+                                        }}
+                                        source={{
+                                          uri: para.LPramImgs,
+                                        }}
+                                      />
+                                      <Text style={styles.camingtext}>
+                                        {para.LPram +
+                                          "GB " +
+                                          para.LPramType +
+                                          "\nExpandable : " +
+                                          para.LPexram +
+                                          "GB"}
+                                      </Text>
+                                    </View>
+                                  ) : (
+                                    "null"
+                                  )}
+                                </Text>
+                              </View>
+                            ) : null}
                           </View>
                           {intake === "Laptops" ? (
                             <View
@@ -1042,7 +1309,16 @@ const Main = () => {
                               ) : null}
                             </View>
                           ) : null}
-                          <View style={styles.smallDivi}></View>
+                          <View
+                            style={{
+                              width: Dimensions.get("window").width / 3.5,
+                              height: 2,
+                              marginTop: 5,
+                              marginBottom: 15,
+                              backgroundColor: "rgba(0,0,0,0.8)",
+                              display: para.Wname ? "none" : "flex",
+                            }}
+                          ></View>
                           <View style={styles.listContainer}>
                             <Text
                               style={{
@@ -1197,7 +1473,7 @@ const Main = () => {
                                                             ? para.Sosver
                                                             : null}
                                                           {gens ==
-                                                          "System Operating System"
+                                                          "System User Interface"
                                                             ? para.S_system_ui
                                                             : null}
                                                         </Text>
@@ -1477,9 +1753,12 @@ const Main = () => {
                                                             ? para.LPdisplayType
                                                             : null}
                                                           {gens == "Speakers"
-                                                            ? para.LPspeakers
-                                                                .length > 2
-                                                              ? "Yes"
+                                                            ? para.LPspeakers !==
+                                                              undefined
+                                                              ? para.LPspeakers
+                                                                  .length > 2
+                                                                ? "Yes"
+                                                                : "NA"
                                                               : "NA"
                                                             : null}
                                                           {gens ==
@@ -1529,48 +1808,60 @@ const Main = () => {
                                                               "GB"
                                                             : null}
                                                           {gens == "SSD"
-                                                            ? para.LP_storage.includes(
-                                                                "SSD"
-                                                              )
-                                                              ? "Yes"
+                                                            ? para.LP_storage !==
+                                                              undefined
+                                                              ? para.LP_storage.includes(
+                                                                  "SSD"
+                                                                )
+                                                                ? "Yes"
+                                                                : "NA"
                                                               : "NA"
                                                             : null}
                                                           {gens ==
                                                           "SSD Capacity"
-                                                            ? para.LP_storage.includes(
-                                                                "SSD"
-                                                              ) === true
-                                                              ? (para.LPstorage >
-                                                                  0) &
-                                                                (para.LPstorage <
-                                                                  10)
-                                                                ? para.LPstorage +
-                                                                  "TB"
-                                                                : para.LPstorage +
-                                                                  "GB"
+                                                            ? para.LP_storage !==
+                                                              undefined
+                                                              ? para.LP_storage.includes(
+                                                                  "SSD"
+                                                                ) === true
+                                                                ? (para.LPstorage >
+                                                                    0) &
+                                                                  (para.LPstorage <
+                                                                    10)
+                                                                  ? para.LPstorage +
+                                                                    "TB"
+                                                                  : para.LPstorage +
+                                                                    "GB"
+                                                                : "NA"
                                                               : "NA"
                                                             : null}
                                                           {gens == "HDD"
-                                                            ? para.LP_storage.includes(
-                                                                "HDD"
-                                                              )
-                                                              ? "Yes"
-                                                              : "NA"
+                                                            ? para.LP_storage !==
+                                                              undefined
+                                                              ? para.LP_storage.includes(
+                                                                  "HDD"
+                                                                )
+                                                                ? "Yes"
+                                                                : "NA"
+                                                              : null
                                                             : null}
                                                           {gens ==
                                                           "HDD Capacity"
-                                                            ? para.LP_storage.includes(
-                                                                "HDD"
-                                                              ) === true
-                                                              ? (para.LPstorage >
-                                                                  0) &
-                                                                (para.LPstorage <
-                                                                  10)
-                                                                ? para.LPstorage +
-                                                                  "TB"
-                                                                : para.LPstorage +
-                                                                  "GB"
-                                                              : "NA"
+                                                            ? para.LP_storage !==
+                                                              undefined
+                                                              ? para.LP_storage.includes(
+                                                                  "HDD"
+                                                                ) === true
+                                                                ? (para.LPstorage >
+                                                                    0) &
+                                                                  (para.LPstorage <
+                                                                    10)
+                                                                  ? para.LPstorage +
+                                                                    "TB"
+                                                                  : para.LPstorage +
+                                                                    "GB"
+                                                                : "NA"
+                                                              : null
                                                             : null}
                                                           {gens === "Processor"
                                                             ? para.LPprocess
@@ -1813,12 +2104,158 @@ const Main = () => {
                                                             : null}
                                                           {gens ==
                                                           "Backlit KeyBoard"
-                                                            ? para.LPKeyboardType.includes(
-                                                                "Backlit" ||
-                                                                  "backlit"
-                                                              )
-                                                              ? "Yes"
-                                                              : "NA"
+                                                            ? para.LPKeyboardType !==
+                                                              undefined
+                                                              ? para.LPKeyboardType.includes(
+                                                                  "Backlit" ||
+                                                                    "backlit"
+                                                                )
+                                                                ? "Yes"
+                                                                : "NA"
+                                                              : null
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                          </View>
+                                        </View>
+                                      );
+                                    })
+                                  : null}
+                                {intake === "Washing Machine"
+                                  ? wDescription.map((params, indice) => {
+                                      return (
+                                        <View
+                                          key={indice}
+                                          style={styles.dataModal}
+                                        >
+                                          <Text style={styles.params}>
+                                            {params}
+                                          </Text>
+                                          <View>
+                                            {params == "General"
+                                              ? wGeneral.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Brand"
+                                                            ? para.Sbrand
+                                                            : null}
+                                                          {gens == "Name"
+                                                            ? para.Wname
+                                                            : null}
+                                                          {gens ==
+                                                          "Functionality"
+                                                            ? para.Wmtype
+                                                            : null}
+                                                          {gens ==
+                                                          "Energy Rating"
+                                                            ? para.WmRatings +
+                                                              "/5"
+                                                            : null}
+                                                          {gens ==
+                                                          "Washing Capacity"
+                                                            ? para.WavgCapacity +
+                                                              "Kg"
+                                                            : null}
+                                                          {gens ==
+                                                          "Maximum Spin Speed"
+                                                            ? para.WRPM + "RPM"
+                                                            : null}
+                                                          {gens == "Color"
+                                                            ? para.Wcolor
+                                                            : null}
+                                                          {gens ===
+                                                          "In-built Heater"
+                                                            ? para.Wheat
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Convenience Features"
+                                              ? wConvenience.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens ===
+                                                          "Digital Display"
+                                                            ? para.Wdigi
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Dimensions"
+                                              ? wDimensions.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Width"
+                                                            ? para.Wwidth + "cm"
+                                                            : null}
+                                                          {gens == "Height"
+                                                            ? para.Wheight +
+                                                              "cm"
+                                                            : null}
+                                                          {gens == "Weight"
+                                                            ? para.Wweight +
+                                                              "Kg"
                                                             : null}
                                                         </Text>
                                                       </View>

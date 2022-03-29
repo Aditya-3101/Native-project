@@ -8,6 +8,7 @@ import { SortPhonesProvider } from "./components/contexts/SphonesContext";
 import { DetailProvider } from "./components/contexts/DetailContext";
 import { CartProvider } from "./components/contexts/Getcart";
 import { IntakeProvider } from "./components/contexts/Intake";
+import { WmacProvider } from "./components/contexts/WmachineContext";
 
 const App = () => {
   return (
@@ -17,9 +18,11 @@ const App = () => {
           <LaptopProvider>
             <SortPhonesProvider>
               <MobileProvider>
-                <DetailProvider>
-                  <StackNavigator />
-                </DetailProvider>
+                <WmacProvider>
+                  <DetailProvider>
+                    <StackNavigator />
+                  </DetailProvider>
+                </WmacProvider>
               </MobileProvider>
             </SortPhonesProvider>
           </LaptopProvider>
