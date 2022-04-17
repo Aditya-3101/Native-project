@@ -19,7 +19,13 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import { DetailContext } from "../contexts/DetailContext";
 import { CartContext } from "../contexts/Getcart";
 import { IntakeContext } from "../contexts/Intake";
-import { useContext, useEffect, useState, useRef } from "react";
+import {
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import { useNavigation } from "@react-navigation/native";
 import ListView from "../ListContainer/ListView";
 
@@ -37,6 +43,7 @@ const Main = (props) => {
   const [intake, setIntake] = useContext(IntakeContext);
 
   const [data, setData] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   const [text, setText] = useState(false);
@@ -51,13 +58,66 @@ const Main = (props) => {
 
   const [lpFeatures, setLpFeatures] = useState(["Display", "Processor", "RAM"]);
 
+  const [tbFeatures, setTbFeatures] = useState([
+    "Display",
+    "Camera",
+    "Processor",
+  ]);
+
   const Description = [
     "General",
     "Display Features",
-    "Os & Processor features",
+    "Os & Processor Features",
     "Camera Features",
     "Storage & Battery Details",
     "Connectivity Features",
+  ];
+
+  const tbDescription = [
+    "General",
+    "Display Features",
+    "Camera Details",
+    "Os & Processor Features",
+    "Storage & Battery Details",
+    "Extra Details",
+  ];
+
+  const tbGeneral = [
+    "Name",
+    "Brand",
+    "RAM",
+    "Storage",
+    "Color",
+    "Wifi Only?",
+    "Wifi+4G",
+    "Screen Size",
+    "Product Type",
+  ];
+
+  const tbDisplayFeatures = ["Display Size", "Display Type", "Resolution"];
+
+  const tbCameraFeatures = [
+    "Rear Camera",
+    "Front Camera",
+    "Primary Camera Features",
+    "Video Recording Features",
+  ];
+
+  const tbOsFea = ["Operating System", "Processor", "Operating System Version"];
+
+  const tbStorageFea = [
+    "Internal Storage",
+    "Expandable Storage",
+    "Battery Capacity",
+  ];
+
+  const tbExtra = [
+    "Wifi Version",
+    "Bluetooth Version",
+    "USB Compability",
+    "Supported Video Formats",
+    "Supported Audio Formats",
+    "Supported Networks",
   ];
 
   const lpDescription = [
@@ -71,6 +131,66 @@ const Main = (props) => {
   ];
 
   const wDescription = ["General", "Convenience Features", "Dimensions"];
+
+  const RfDescription = [
+    "General",
+    "Compartment Features",
+    "Power Features",
+    "Dimensions",
+  ];
+
+  const TvDescription = [
+    "General",
+    "Video Features",
+    "Audio Features",
+    "Extra Features",
+    "Connectivity Features",
+    "Dimensions",
+  ];
+
+  const RfGeneral = [
+    "Brand",
+    "Name",
+    "Color",
+    "Defrosting Type",
+    "Compressor Type",
+    "Capacity",
+  ];
+
+  const TvGeneral = ["Brand", "Name", "Model", "Color", "Display Type"];
+
+  const TvVideoFea = [
+    "Display Size",
+    "Display Type",
+    "Display Resolution",
+    "Refresh Rate",
+    "Aspect Ratio",
+    "Supported Video Formats",
+  ];
+
+  const TvaudioFea = ["No of Speakers", "Speaker Output"];
+
+  const TvextraFea = [
+    "Processor",
+    "RAM",
+    "Operating System",
+    "Supported Applications",
+  ];
+
+  const Tvcon = ["HDMI Ports", "USB Ports"];
+
+  const Tvdim = ["Screen Size", "Weight"];
+
+  const Rfcomp = [
+    "No of Doors",
+    "No of Shelves",
+    "Is Eggtray Available?",
+    "Is Interior Lighting Available?",
+  ];
+
+  const Rfenergy = ["Energy Rating", "Stabilizer Required"];
+
+  const RfDimensions = ["Width", "Height", "Weight"];
 
   const wGeneral = [
     "Brand",
@@ -177,6 +297,8 @@ const Main = (props) => {
 
   const [lpdetail, setLpDetail] = useState("Display");
 
+  const [tbdetail, setTbdetail] = useState("Display");
+
   const [anotherDetail, setAnotherDetail] = useState("Battery");
 
   const [allPhotos, setAllPhotos] = useState([]);
@@ -187,13 +309,9 @@ const Main = (props) => {
 
   const inputType = String(selected).replace(/[^a-zA-Z ]/g, "");
 
-  //console.log(inputType);
-
   const [checkPath, setCheckPath] = useState();
 
   const inputid = String(selected).replace(/[^0-9]/g, "");
-
-  //console.log(inputid);
 
   useEffect(() => {
     if (props.route.params.paths == "viaCart") {
@@ -214,26 +332,17 @@ const Main = (props) => {
       //setPhotosLinks(img.SmPhotos);
       setPhotosLinks(String(img.SmPhotos).split("|||"));
     });
-    console.log(allPhotos);
   }, [allPhotos]);
 
-  useEffect(() => {
-    console.log(photosLinks);
-  }, [photosLinks]);
-
-  console.log(
-    props.route.params !== undefined ? props.route.params.paths : "NA"
-  );
-
-  useEffect(() => {
+  useLayoutEffect(() => {
+    let isMounted = true;
     if (inputType === "Mobile") {
       fetch(`http://192.168.43.29:4000/api/main/smartphones/get?id=${inputid}`)
         .then((res) => res.json())
         .then((result) => {
-          setData(result);
+          isMounted ? setData(result) : null;
           setLoading(false);
           setIntake("mobiles");
-          //console.log(result);
         })
         .catch((error) => {
           console.log(error);
@@ -253,37 +362,139 @@ const Main = (props) => {
       fetch(`http://192.168.43.29:4000/api/main/laptops/get?id=${inputid}`)
         .then((res) => res.json())
         .then((Result) => {
-          setData(Result);
+          isMounted ? setData(Result) : null;
           setLoading(false);
           setIntake("Laptops");
         })
         .catch((err) => {
           console.log(err);
         });
+      fetch(
+        `http://192.168.43.29:4000/api/main/laptops/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
+    if (inputType === "Refrigerator") {
+      fetch(
+        `http://192.168.43.29:4000/api/main/Refrigerators/get?id=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setData(Result) : null;
+          setLoading(false);
+          setIntake("Refrigerator");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      fetch(
+        `http://192.168.43.29:4000/api/main/Refrigerators/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    if (inputType === "Tv") {
+      fetch(`http://192.168.43.29:4000/api/main/televisions/get?id=${inputid}`)
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setData(Result) : null;
+          setLoading(false);
+          setIntake("Tv");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      fetch(
+        `http://192.168.43.29:4000/api/main/televisions/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    if (inputType === "Tablet") {
+      fetch(`http://192.168.43.29:4000/api/main/tablets/get?id=${inputid}`)
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setData(Result) : null;
+          setLoading(false);
+          setIntake("Tablets");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      fetch(
+        `http://192.168.43.29:4000/api/main/tablets/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
+    let isMounted = true;
     if (inputType === "Mobile") {
       fetch(`http://192.168.43.29:4000/api/main/smartphones/get?id=${inputid}`)
         .then((res) => res.json())
         .then((result) => {
-          setData(result);
+          isMounted ? setData(result) : null;
           setLoading(false);
           setIntake("mobiles");
-          //console.log(result);
         })
         .catch((error) => {
           console.log(error);
+        });
+      fetch(
+        `http://192.168.43.29:4000/api/main/smartphones/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
         });
     }
     if (inputType === "Laptops") {
       fetch(`http://192.168.43.29:4000/api/main/laptops/get?id=${inputid}`)
         .then((res) => res.json())
         .then((Result) => {
-          setData(Result);
+          isMounted ? setData(Result) : null;
           setLoading(false);
           setIntake("Laptops");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+      fetch(
+        `http://192.168.43.29:4000/api/main/laptops/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
         })
         .catch((err) => {
           console.log(err);
@@ -293,25 +504,101 @@ const Main = (props) => {
       fetch(`http://192.168.43.29:4000/api/main/wmachines/get?id=${inputid}`)
         .then((res) => res.json())
         .then((result) => {
-          setData(result);
+          isMounted ? setData(result) : null;
           setLoading(false);
-          setIntake("Washing Machine");
+          setIntake("Wmachine");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+      fetch(
+        `http://192.168.43.29:4000/api/main/wmachines/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
         })
         .catch((err) => {
           console.log(err);
         });
     }
+    if (inputType === "Refrigerators") {
+      fetch(
+        `http://192.168.43.29:4000/api/main/Refrigerators/get?id=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          isMounted ? setData(result) : null;
+          setLoading(false);
+          setIntake("Refrigerator");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+      fetch(
+        `http://192.168.43.29:4000/api/main/Refrigerators/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    if (inputType === "Tv") {
+      fetch(`http://192.168.43.29:4000/api/main/televisions/get?id=${inputid}`)
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setData(Result) : null;
+          setLoading(false);
+          setIntake("Tv");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      fetch(
+        `http://192.168.43.29:4000/api/main/televisions/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    if (inputType === "Tablet") {
+      fetch(`http://192.168.43.29:4000/api/main/tablets/get?id=${inputid}`)
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setData(Result) : null;
+          setLoading(false);
+          setIntake("Tablets");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      fetch(
+        `http://192.168.43.29:4000/api/main/tablets/allPhotos?get=${inputid}`
+      )
+        .then((res) => res.json())
+        .then((result) => {
+          setAllPhotos(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
   }, [selected]);
 
-  BackHandler.addEventListener("hardwareBackPress", () => {
-    //console.log("back key pressed in detailpage");
-    //navigation.goBack();
-  });
-
   const Addthis = () => {
-    //console.log(data);
     setItems((prev) => [...prev, data]);
-    //setItems([...items, data]);
     setText(true);
   };
 
@@ -339,17 +626,18 @@ const Main = (props) => {
           </View>
         </View>
       ) : (
-        <ScrollView ref={ref}>
+        <ScrollView
+          ref={ref}
+          scrollEnabled={fullSizeImg === true ? false : true}
+        >
           <SafeAreaView style={styles.container}>
-            <StatusBar backgroundColor={"rgba(0,0,0,0.92)"} />
+            <StatusBar backgroundColor={"rgba(0,0,0,0.92)"} hidden={true} />
             <View style={styles.nav}>
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-                  //borderColor: "red",
-                  //borderWidth: 1,
                 }}
               >
                 <MaterialIcon
@@ -398,11 +686,11 @@ const Main = (props) => {
                         minHeight:
                           fullSizeImg == true
                             ? Dimensions.get("window").height - 65
-                            : 230,
+                            : 255,
                         maxHeight:
                           fullSizeImg == true
                             ? Dimensions.get("window").height - 65
-                            : 285,
+                            : 320,
                         paddingTop: 5,
                         paddingBottom: 5,
                         backgroundColor: "rgb(256,256,256)",
@@ -454,7 +742,7 @@ const Main = (props) => {
                               style={{
                                 width: 30,
                                 height: 2,
-                                marginTop: 5,
+                                marginTop: 9,
                                 marginBottom: 5,
                                 backgroundColor:
                                   k === active
@@ -465,25 +753,6 @@ const Main = (props) => {
                           );
                         })}
                       </View>
-
-                      {/* <Image
-                          source={{
-                            uri: para.Simg
-                              ? para.Simg
-                              : para.LPpriimg
-                              ? para.LPpriimg
-                              : para.Wpriimg
-                              ? para.Wpriimg
-                              : null,
-                          }}
-                          style={{
-                            width: fullSizeImg == true ? 350 : 255,
-                            height: fullSizeImg == true ? 350 : 255,
-                            resizeMode: "contain",
-                            marginTop: 10,
-                            marginBottom: 10,
-                          }}
-                        /> */}
                     </View>
                     <View
                       style={{
@@ -513,6 +782,12 @@ const Main = (props) => {
                             ? para.LPname
                             : para.Wname
                             ? para.Wname
+                            : para.RfName
+                            ? para.RfName
+                            : para.Tvname
+                            ? para.Tvname
+                            : para.Tbname
+                            ? para.Tbname
                             : null}
                         </Text>
                         <Text
@@ -539,6 +814,18 @@ const Main = (props) => {
                               })`
                             : para.Wname
                             ? `(${para.Wcolor}/${para.WRPM}RPM)`
+                            : para.RfName
+                            ? `(${para.Rfcolor}/${para.Rfcool}/${
+                                para.Rfstorage + "L"
+                              })`
+                            : para.Tvname
+                            ? `(${para.Tvcolor}/${para.TvdisplayType}/${
+                                para.TvdisplaySize + "Inch"
+                              })`
+                            : para.Tbname
+                            ? `(${para.Tbcolor}/${para.Tbstorage + "GB"}/${
+                                para.TbdisplaySize + "inch"
+                              })`
                             : null}
                         </Text>
                         <Text
@@ -574,6 +861,27 @@ const Main = (props) => {
                                   currency: "INR",
                                 })
                                 .replace(".00", "")
+                            : para.Rfprice
+                            ? parseInt(para.Rfprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
+                            : para.Tvprice
+                            ? parseInt(para.Tvprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
+                            : para.Tbprice
+                            ? parseInt(para.Tbprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
                             : null}
                         </Text>
                       </View>
@@ -587,6 +895,12 @@ const Main = (props) => {
                                 ? "personal-video"
                                 : para.WRPM
                                 ? "speed"
+                                : para.Rfstorage
+                                ? "storage"
+                                : para.TvdisplayRes
+                                ? "aspect-ratio"
+                                : para.TbdisplayRes
+                                ? "aspect-ratio"
                                 : null
                             }
                             color="rgb(50,50,50)"
@@ -599,6 +913,12 @@ const Main = (props) => {
                               ? para.LPdisplaySize + " inch"
                               : para.WRPM
                               ? para.WRPM + "RPM"
+                              : para.Rfstorage
+                              ? para.Rfstorage + "L"
+                              : para.TvdisplayRes
+                              ? para.TvdisplayRes
+                              : para.TbdisplayRes
+                              ? para.TbdisplayRes + "P"
                               : null}
                           </Text>
                         </View>
@@ -611,6 +931,12 @@ const Main = (props) => {
                                 ? "storage"
                                 : para.WmRatings
                                 ? "bolt"
+                                : para.RfenergyStar
+                                ? "bolt"
+                                : para.TvdisplayType
+                                ? "hd"
+                                : para.Tbstorage
+                                ? "storage"
                                 : null
                             }
                             color="rgb(50,50,50)"
@@ -625,6 +951,12 @@ const Main = (props) => {
                                 : para.LPstorage + "GB"
                               : para.WmRatings
                               ? para.WmRatings + " Energy Rating"
+                              : para.RfenergyStar
+                              ? para.RfenergyStar + " Energy Rating"
+                              : para.TvdisplayType
+                              ? para.TvdisplayType
+                              : para.Tbstorage
+                              ? para.Tbstorage + "GB"
                               : null}
                           </Text>
                         </View>
@@ -637,6 +969,12 @@ const Main = (props) => {
                                 ? "memory"
                                 : para.Wmtype
                                 ? "functions"
+                                : para.Rfcool
+                                ? "ac-unit"
+                                : para.Tvusb
+                                ? "usb"
+                                : para.TbProcessor
+                                ? "memory"
                                 : null
                             }
                             color="rgb(50,50,50)"
@@ -649,6 +987,12 @@ const Main = (props) => {
                               ? para.LPprocess
                               : para.Wmtype
                               ? para.Wmtype
+                              : para.Rfcool
+                              ? para.Rfcool
+                              : para.Tvusb
+                              ? para.Tvusb + " x USB"
+                              : para.TbProcessor
+                              ? para.TbProcessor
                               : null}
                           </Text>
                         </View>
@@ -658,7 +1002,6 @@ const Main = (props) => {
                           style={styles.btns}
                           onPress={() => {
                             if (text === false) {
-                              console.log("text " + text);
                               Addthis();
                               ToastAndroid.showWithGravityAndOffset(
                                 "Item added to cart",
@@ -668,7 +1011,6 @@ const Main = (props) => {
                                 50
                               );
                             } else {
-                              console.log("text is", +text);
                               navigation.navigate("carts");
                             }
                           }}
@@ -684,7 +1026,13 @@ const Main = (props) => {
                             {text ? "Go to cart" : "Add to cart"}
                           </Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.btnsB}>
+                        <TouchableOpacity
+                          style={styles.btnsB}
+                          onPress={() => {
+                            Addthis();
+                            navigation.navigate("checkout");
+                          }}
+                        >
                           <Text
                             style={{
                               fontSize: 16,
@@ -706,7 +1054,11 @@ const Main = (props) => {
                             fontSize: 19,
                             fontWeight: "bold",
                             color: "rgba(0,0,0,0.9)",
-                            display: para.Wname ? "none" : "flex",
+                            display: para.Wname
+                              ? "none"
+                              : para.RfName
+                              ? "none"
+                              : "flex",
                           }}
                         >
                           Details
@@ -724,7 +1076,11 @@ const Main = (props) => {
                             bottom: 40,
                             right: "auto",
                             left: "auto",
-                            display: para.Wname ? "none" : "flex",
+                            display: para.Wname
+                              ? "none"
+                              : para.RfName
+                              ? "none"
+                              : "flex",
                           }}
                         ></View>
                         <View style={styles.headerContainer}>
@@ -961,7 +1317,7 @@ const Main = (props) => {
                                       </Text>
                                     </View>
                                   ) : (
-                                    "No Data available"
+                                    "null"
                                   )}
                                 </Text>
                               </View>
@@ -1094,6 +1450,156 @@ const Main = (props) => {
                                 </Text>
                               </View>
                             ) : null}
+                            {para.Tbname
+                              ? tbFeatures
+                                  .map((params, indice) => {
+                                    return (
+                                      <View key={indice} style={styles.modals}>
+                                        <TouchableOpacity
+                                          style={{
+                                            //width:
+                                            //Dimensions.get("window").width / 3.5,
+                                            width: "100%",
+                                            position: "absolute",
+                                            alignItems: "center",
+                                            borderWidth: 1,
+                                            borderColor: "rgb(30,30,30)",
+                                            padding: 4,
+                                            borderRadius: 35,
+                                            textAlign: "center",
+                                            textAlignVertical: "center",
+                                            backgroundColor: "Black",
+                                            backgroundColor:
+                                              tbdetail === params
+                                                ? "white"
+                                                : "black",
+                                          }}
+                                          onPress={() => {
+                                            setTbdetail(params);
+                                          }}
+                                        >
+                                          <Text
+                                            style={{
+                                              fontSize: 15,
+                                              color:
+                                                tbdetail === params
+                                                  ? "black"
+                                                  : "white",
+                                            }}
+                                          >
+                                            {params}
+                                          </Text>
+                                        </TouchableOpacity>
+                                      </View>
+                                    );
+                                  })
+                                  .slice(0, 3)
+                              : null}
+
+                            {para.Tbname ? (
+                              <View style={styles.modalData}>
+                                <Text
+                                  style={{
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  {tbdetail === "Display" ? (
+                                    <View style={styles.caming}>
+                                      {para.TbDisimg ? (
+                                        <Image
+                                          style={{
+                                            //minWidth: 180,
+                                            //maxWidth: 210,
+                                            width: "99%",
+                                            //Dimensions.get("window").width / 1.6,
+                                            minHeight: 190,
+                                            maxHeight: 220,
+                                            resizeMode: "contain",
+                                          }}
+                                          source={{
+                                            uri: para.TbDisimg,
+                                          }}
+                                        />
+                                      ) : (
+                                        <MaterialIcon
+                                          name="fit-screen"
+                                          color="rgba(0,0,0,0.8)"
+                                          style={{ fontSize: 160 }}
+                                        />
+                                      )}
+                                      <Text style={styles.camingtext}>
+                                        {para.TbdisplaySize + "inch\n"}
+                                        {para.TbdisplayRes + "P"}
+                                      </Text>
+                                    </View>
+                                  ) : tbdetail === "Processor" ? (
+                                    <View style={styles.caming}>
+                                      {para.Tbprocimg ? (
+                                        <Image
+                                          style={{
+                                            //minWidth: 180,
+                                            //maxWidth: 210,
+                                            width: "100%",
+                                            //Dimensions.get("window").width / 1.6,
+                                            minHeight: 195,
+                                            maxHeight: 220,
+                                            resizeMode: "contain",
+                                          }}
+                                          source={{
+                                            uri: para.Tbprocimg,
+                                          }}
+                                        />
+                                      ) : (
+                                        <MaterialIcon
+                                          name="videocam"
+                                          color="rgba(0,0,0,0.8)"
+                                          style={{ fontSize: 160 }}
+                                        />
+                                      )}
+                                      <Text style={styles.camingtext}>
+                                        {para.TbProcessor}
+                                      </Text>
+                                    </View>
+                                  ) : tbdetail === "Camera" ? (
+                                    <View style={styles.caming}>
+                                      {para.Tbcamimg ? (
+                                        <Image
+                                          style={{
+                                            //minWidth: 180,
+                                            //maxWidth: 210,
+                                            width: "100%",
+                                            //Dimensions.get("window").width / 1.6,
+                                            minHeight: 195,
+                                            maxHeight: 220,
+                                            resizeMode: "contain",
+                                          }}
+                                          source={{
+                                            uri: para.Tbcamimg,
+                                          }}
+                                        />
+                                      ) : (
+                                        <MaterialIcon
+                                          name="videocam"
+                                          color="rgba(0,0,0,0.8)"
+                                          style={{ fontSize: 160 }}
+                                        />
+                                      )}
+                                      <Text style={styles.camingtext}>
+                                        {para.TbpriCam + "MP/"}
+                                        {para.TbsecCam
+                                          ? para.TbsecCam + "MP\n"
+                                          : null}
+                                        {para.TbpriCamFea
+                                          ? para.TbpriCamFea
+                                          : null}
+                                      </Text>
+                                    </View>
+                                  ) : (
+                                    "No Data available"
+                                  )}
+                                </Text>
+                              </View>
+                            ) : null}
                           </View>
                           {intake === "Laptops" ? (
                             <View
@@ -1109,6 +1615,8 @@ const Main = (props) => {
                                   width: "95%",
                                   fontWeight: "600",
                                   display: para.LPHighlightImgs
+                                    ? "flex"
+                                    : para.FirstTvcardImge
                                     ? "flex"
                                     : "none",
                                 }}
@@ -1163,6 +1671,54 @@ const Main = (props) => {
                                   </View>
                                 </View>
                               ) : null}
+                              {para.FirstTvcardImge ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 7,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.FirstTvcardImage }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.FirstTvcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.FirstTvcardtext}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
                               {para.LPHighlightImgs2 ? (
                                 <View
                                   style={{
@@ -1207,6 +1763,54 @@ const Main = (props) => {
                                       }}
                                     >
                                       {para.LPHighlighttexts2}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
+                              {para.SeconfTvcardImage ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row-reverse",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 5,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.SeconfTvcardImage }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.SeconfTvcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.SeconfTvcardtext}
                                     </Text>
                                   </View>
                                 </View>
@@ -1259,6 +1863,54 @@ const Main = (props) => {
                                   </View>
                                 </View>
                               ) : null}
+                              {para.ThirdTvcardImage ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 5,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.ThirdTvcardImage }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.ThirdTvcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.ThirdTvcardtext}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
                               {para.LPHighlightImgs4 ? (
                                 <View
                                   style={{
@@ -1303,6 +1955,268 @@ const Main = (props) => {
                                       }}
                                     >
                                       {para.LPHighlighttexts4}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
+                              {para.FourthTvcardImage ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row-reverse",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 5,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.FourthTvcardImage }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.FourthTvcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.FourthTvcardtext}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
+                            </View>
+                          ) : null}
+                          {intake === "Tv" ? (
+                            <View
+                              style={{
+                                width: Dimensions.get("window").width,
+                                alignItems: "center",
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  color: "rgba(0,0,0,0.90)",
+                                  fontSize: 20,
+                                  width: "95%",
+                                  fontWeight: "600",
+                                  display: para.FirstTVcardImge
+                                    ? "flex"
+                                    : "none",
+                                }}
+                              >
+                                HighLights
+                              </Text>
+                              {para.FirstTVcardImge ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 7,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.FirstTVcardImge }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.FirstTVcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.FirstTVcardText}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
+                              {para.SecondTVcardImage ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row-reverse",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 5,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.SecondTVcardImage }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.SeconfTVcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.SecondTVcardText}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
+                              {para.ThirdTVcardImage ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 5,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.ThirdTVcardImage }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.ThirdTVcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.ThirdTVcardText}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ) : null}
+                              {para.FourthTVcardImage ? (
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row-reverse",
+                                    alignItems: "center",
+                                    justifyContent: "space-around",
+                                    marginTop: 5,
+                                    marginBottom: 7,
+                                  }}
+                                >
+                                  <Image
+                                    source={{ uri: para.FourthTVcardImage }}
+                                    style={{
+                                      width: "44%",
+                                      //width: 140,
+                                      height: 100,
+                                      resizeMode: "cover",
+                                    }}
+                                  />
+                                  <View
+                                    style={{
+                                      width: "50%",
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        color: "black",
+                                        fontSize: 15,
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {para.FourthTVcardheader}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 11.8,
+                                        paddingTop: 3,
+                                        paddingBottom: 3,
+                                        color: "rgba(0,0,0,0.89)",
+                                      }}
+                                    >
+                                      {para.FourthTVcardText}
                                     </Text>
                                   </View>
                                 </View>
@@ -1440,7 +2354,7 @@ const Main = (props) => {
                                                   }
                                                 )
                                               : null}
-                                            {params == "Os & Processor features"
+                                            {params == "Os & Processor Features"
                                               ? osHeader.map(
                                                   (gens, subgens) => {
                                                     return (
@@ -2125,7 +3039,7 @@ const Main = (props) => {
                                       );
                                     })
                                   : null}
-                                {intake === "Washing Machine"
+                                {intake === "Wmachine"
                                   ? wDescription.map((params, indice) => {
                                       return (
                                         <View
@@ -2262,6 +3176,751 @@ const Main = (props) => {
                                                     );
                                                   }
                                                 )
+                                              : null}
+                                          </View>
+                                        </View>
+                                      );
+                                    })
+                                  : null}
+                                {intake === "Refrigerator"
+                                  ? RfDescription.map((params, indice) => {
+                                      return (
+                                        <View
+                                          key={indice}
+                                          style={styles.dataModal}
+                                        >
+                                          <Text style={styles.params}>
+                                            {params}
+                                          </Text>
+                                          <View>
+                                            {params == "General"
+                                              ? RfGeneral.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Brand"
+                                                            ? para.Sbrand
+                                                            : null}
+                                                          {gens == "Name"
+                                                            ? para.RfName
+                                                            : null}
+                                                          {gens == "Color"
+                                                            ? para.Rfcolor
+                                                            : null}
+                                                          {gens ==
+                                                          "Defrosting Type"
+                                                            ? para.Rfcool
+                                                            : null}
+                                                          {gens == "Capacity"
+                                                            ? para.Rfstorage +
+                                                              "L"
+                                                            : null}
+                                                          {gens ==
+                                                          "Compressor Type"
+                                                            ? para.Rfcomp
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Compartment Features"
+                                              ? Rfcomp.map((gens, subgens) => {
+                                                  return (
+                                                    <View
+                                                      key={subgens}
+                                                      style={{
+                                                        width: "100%",
+                                                        flexDirection: "row",
+                                                      }}
+                                                    >
+                                                      <Text
+                                                        style={styles.lines}
+                                                      >
+                                                        {gens}
+                                                      </Text>
+                                                      <Text
+                                                        style={styles.linesdata}
+                                                      >
+                                                        {gens === "No of Doors"
+                                                          ? para.Rfdoor
+                                                          : null}
+                                                        {gens ===
+                                                        "No of Shelves"
+                                                          ? para.RfnoOfShelves
+                                                          : null}
+                                                        {gens ===
+                                                        "Is Eggtray Available?"
+                                                          ? para.Rfavailtray
+                                                          : null}
+                                                        {gens ===
+                                                        "Is Interior Lighting Available?"
+                                                          ? para.RfinteriorLightings
+                                                          : null}
+                                                      </Text>
+                                                    </View>
+                                                  );
+                                                })
+                                              : null}
+                                            {params == "Power Features"
+                                              ? Rfenergy.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens ==
+                                                          "Energy Rating"
+                                                            ? para.RfenergyStar
+                                                            : null}
+                                                          {gens ==
+                                                          "Stabilizer Required"
+                                                            ? para.Rfstab
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Dimensions"
+                                              ? RfDimensions.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Width"
+                                                            ? para.Rfwidth +
+                                                              "cm"
+                                                            : null}
+                                                          {gens == "Height"
+                                                            ? para.Rfheight +
+                                                              "cm"
+                                                            : null}
+                                                          {gens == "Weight"
+                                                            ? para.Rfweight +
+                                                              "Kg"
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                          </View>
+                                        </View>
+                                      );
+                                    })
+                                  : null}
+                                {intake === "Tv"
+                                  ? TvDescription.map((params, indice) => {
+                                      return (
+                                        <View
+                                          key={indice}
+                                          style={styles.dataModal}
+                                        >
+                                          <Text style={styles.params}>
+                                            {params}
+                                          </Text>
+                                          <View>
+                                            {params == "General"
+                                              ? TvGeneral.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Brand"
+                                                            ? para.Sbrand
+                                                            : null}
+                                                          {gens == "Name"
+                                                            ? para.Tvname
+                                                            : null}
+                                                          {gens == "Color"
+                                                            ? para.Tvcolor
+                                                            : null}
+                                                          {gens == "Model"
+                                                            ? para.TvModel
+                                                            : null}
+                                                          {gens ==
+                                                          "Display Type"
+                                                            ? para.TvdisplayType
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Video Features"
+                                              ? TvVideoFea.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens ===
+                                                          "Display Size"
+                                                            ? para.TvdisplaySize +
+                                                              "Inch"
+                                                            : null}
+                                                          {gens ===
+                                                          "Display Type"
+                                                            ? para.TvdisplayType
+                                                            : null}
+                                                          {gens ===
+                                                          "Display Resolution"
+                                                            ? para.TvdisplayRes
+                                                            : null}
+                                                          {gens ===
+                                                          "Refresh Rate"
+                                                            ? para.TvrfRate
+                                                            : null}
+                                                          {gens ===
+                                                          "Aspect Ratio"
+                                                            ? para.TvaspectRatio
+                                                            : null}
+                                                          {gens ===
+                                                          "Supported Video Formats"
+                                                            ? para.TvsuppVideo
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Audio Features"
+                                              ? TvaudioFea.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens ==
+                                                          "No of Speakers"
+                                                            ? para.Tvspeakers
+                                                            : null}
+                                                          {gens ==
+                                                          "Speaker Output"
+                                                            ? para.Tvaudio
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Extra Features"
+                                              ? TvextraFea.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Processor"
+                                                            ? para.Tvproc
+                                                            : null}
+                                                          {gens == "RAM"
+                                                            ? para.Tvram + "GB"
+                                                            : null}
+                                                          {gens ==
+                                                          "Operating System"
+                                                            ? para.Tv_os
+                                                            : null}
+                                                          {gens ===
+                                                          "Supported Applications"
+                                                            ? para.Tv_suppAPp
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Connectivity Features"
+                                              ? Tvcon.map((gens, subgens) => {
+                                                  return (
+                                                    <View
+                                                      key={subgens}
+                                                      style={{
+                                                        width: "100%",
+                                                        flexDirection: "row",
+                                                      }}
+                                                    >
+                                                      <Text
+                                                        style={styles.lines}
+                                                      >
+                                                        {gens}
+                                                      </Text>
+                                                      <Text
+                                                        style={styles.linesdata}
+                                                      >
+                                                        {gens == "HDMI Ports"
+                                                          ? para.Tvhdmi
+                                                          : null}
+                                                        {gens == "USB Ports"
+                                                          ? para.Tvusb
+                                                          : null}
+                                                      </Text>
+                                                    </View>
+                                                  );
+                                                })
+                                              : null}
+                                            {params == "Dimensions"
+                                              ? Tvdim.map((gens, subgens) => {
+                                                  return (
+                                                    <View
+                                                      key={subgens}
+                                                      style={{
+                                                        width: "100%",
+                                                        flexDirection: "row",
+                                                      }}
+                                                    >
+                                                      <Text
+                                                        style={styles.lines}
+                                                      >
+                                                        {gens}
+                                                      </Text>
+                                                      <Text
+                                                        style={styles.linesdata}
+                                                      >
+                                                        {gens == "Screen Size"
+                                                          ? para.TvdisplaySize +
+                                                            "Inch"
+                                                          : null}
+                                                        {gens == "Weight"
+                                                          ? para.Tvweight + "Kg"
+                                                          : null}
+                                                      </Text>
+                                                    </View>
+                                                  );
+                                                })
+                                              : null}
+                                          </View>
+                                        </View>
+                                      );
+                                    })
+                                  : null}
+                                {intake === "Tablets"
+                                  ? tbDescription.map((params, indice) => {
+                                      return (
+                                        <View
+                                          key={indice}
+                                          style={styles.dataModal}
+                                        >
+                                          <Text style={styles.params}>
+                                            {params}
+                                          </Text>
+                                          <View>
+                                            {params == "General"
+                                              ? tbGeneral.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Name"
+                                                            ? para.TbRealName
+                                                            : null}
+                                                          {gens == "Color"
+                                                            ? para.Tbcolor
+                                                            : null}
+                                                          {gens == "RAM"
+                                                            ? para.Tbram
+                                                              ? para.Tbram
+                                                              : "NA"
+                                                            : null}
+                                                          {gens == "Storage"
+                                                            ? para.Tbstorage +
+                                                              "GB"
+                                                            : null}
+                                                          {gens ==
+                                                          "Product Type"
+                                                            ? para.ProductType
+                                                            : null}
+                                                          {gens == "Brand"
+                                                            ? para.Sbrand
+                                                            : null}
+                                                          {gens ===
+                                                          "Screen Size"
+                                                            ? para.TbdisplaySize +
+                                                              "inch"
+                                                            : null}
+                                                          {gens === "Wifi Only?"
+                                                            ? para.TbwifiOnly
+                                                            : null}
+                                                          {gens === "Wifi+4G"
+                                                            ? para.TbwifiSim
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Display Features"
+                                              ? tbDisplayFeatures.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens ==
+                                                          "Display Size"
+                                                            ? para.TbdisplaySize +
+                                                              "inch"
+                                                            : null}
+                                                          {gens == "Resolution"
+                                                            ? para.TbdisplayRes
+                                                            : null}
+                                                          {gens ==
+                                                          "Display Type"
+                                                            ? para.TbdisplayType
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Os & Processor Features"
+                                              ? tbOsFea.map((gens, subgens) => {
+                                                  return (
+                                                    <View
+                                                      key={subgens}
+                                                      style={{
+                                                        width: "100%",
+                                                        flexDirection: "row",
+                                                      }}
+                                                    >
+                                                      <Text
+                                                        style={styles.lines}
+                                                      >
+                                                        {gens}
+                                                      </Text>
+                                                      <Text
+                                                        style={styles.linesdata}
+                                                      >
+                                                        {gens == "Processor"
+                                                          ? para.TbProcessor
+                                                          : null}
+                                                        {gens ==
+                                                        "Operating System"
+                                                          ? para.TbOs
+                                                          : null}
+                                                        {gens ==
+                                                        "Operating System Version"
+                                                          ? para.TbOsver
+                                                          : null}
+                                                        {gens ==
+                                                        "System User Interface"
+                                                          ? para.S_system_ui
+                                                          : null}
+                                                      </Text>
+                                                    </View>
+                                                  );
+                                                })
+                                              : null}
+                                            {params == "Camera Details"
+                                              ? tbCameraFeatures.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens == "Rear Camera"
+                                                            ? para.TbpriCam +
+                                                              "MP"
+                                                            : null}
+                                                          {gens ==
+                                                          "Front Camera"
+                                                            ? para.TbsecCam +
+                                                              "MP"
+                                                            : null}
+                                                          {gens ==
+                                                          "Primary Camera Features"
+                                                            ? para.TbpriCamFea
+                                                              ? para.TbpriCamFea
+                                                              : "NA"
+                                                            : null}
+                                                          {gens ==
+                                                          "Video Recording Features"
+                                                            ? para.TbvideoRec
+                                                              ? para.TbvideoRec
+                                                              : "NA"
+                                                            : null}
+                                                          {gens ==
+                                                          "Video Resolution"
+                                                            ? para.Svideo_rec
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params ==
+                                            "Storage & Battery Details"
+                                              ? tbStorageFea.map(
+                                                  (gens, subgens) => {
+                                                    return (
+                                                      <View
+                                                        key={subgens}
+                                                        style={{
+                                                          width: "100%",
+                                                          flexDirection: "row",
+                                                        }}
+                                                      >
+                                                        <Text
+                                                          style={styles.lines}
+                                                        >
+                                                          {gens}
+                                                        </Text>
+                                                        <Text
+                                                          style={
+                                                            styles.linesdata
+                                                          }
+                                                        >
+                                                          {gens ==
+                                                          "Internal Storage"
+                                                            ? para.Tbstorage >
+                                                              1000
+                                                              ? String(
+                                                                  para.Tbstorage
+                                                                ).charAt(0) +
+                                                                "TB"
+                                                              : para.Tbstorage +
+                                                                "GB"
+                                                            : null}
+                                                          {gens ==
+                                                          "Expandable Storage"
+                                                            ? para.TbexpanStorage
+                                                              ? para.TbexpanStorage >
+                                                                1000
+                                                                ? String(
+                                                                    para.TbexpanStorage
+                                                                  ).charAt(0) +
+                                                                  "TB"
+                                                                : para.TbexpanStorage +
+                                                                  "GB"
+                                                              : "NA"
+                                                            : null}
+                                                          {gens ==
+                                                          "Battery Capacity"
+                                                            ? para.Tbbattery
+                                                              ? para.Tbbattery +
+                                                                "mAh"
+                                                              : "NA"
+                                                            : null}
+                                                          {gens ==
+                                                          "Battery Details"
+                                                            ? para.SBattery_info
+                                                            : null}
+                                                        </Text>
+                                                      </View>
+                                                    );
+                                                  }
+                                                )
+                                              : null}
+                                            {params == "Extra Details"
+                                              ? tbExtra.map((gens, subgens) => {
+                                                  return (
+                                                    <View
+                                                      key={subgens}
+                                                      style={{
+                                                        width: "100%",
+                                                        flexDirection: "row",
+                                                      }}
+                                                    >
+                                                      <Text
+                                                        style={styles.lines}
+                                                      >
+                                                        {gens}
+                                                      </Text>
+                                                      <Text
+                                                        style={styles.linesdata}
+                                                      >
+                                                        {gens == "Wifi Version"
+                                                          ? para.TbwifiVer
+                                                          : null}
+                                                        {gens ==
+                                                        "Bluetooth Version"
+                                                          ? para.TbBlutoothVer
+                                                          : null}
+                                                        {gens ==
+                                                        "USB Compability"
+                                                          ? para.TbusbType
+                                                          : null}
+                                                        {gens == "Wifi Support"
+                                                          ? String(
+                                                              para.Swifi_ver
+                                                            ).length > 1
+                                                            ? "Yes"
+                                                            : "NA"
+                                                          : null}
+                                                        {gens ==
+                                                        "Supported Video Formats"
+                                                          ? para.TbVideoForm
+                                                          : null}
+                                                        {gens ==
+                                                        "Supported Audio Formats"
+                                                          ? para.TbaudioForm
+                                                          : null}
+                                                        {gens ==
+                                                        "Supported Networks"
+                                                          ? para.TbsuppNw
+                                                            ? para.TbsuppNw
+                                                            : "Not Available"
+                                                          : null}
+                                                      </Text>
+                                                    </View>
+                                                  );
+                                                })
                                               : null}
                                           </View>
                                         </View>

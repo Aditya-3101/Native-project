@@ -1,46 +1,35 @@
 import React from "react";
-import { useState, useEffect, useContext, useLayoutEffect } from "react";
-import Icon from "react-native-vector-icons/FontAwesome";
-import MaterialIcon from "react-native-vector-icons/MaterialIcons";
+import { useState, useLayoutEffect, useContext, useEffect } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
-  Button,
+  SafeAreaView,
+  StyleSheet,
+  Dimensions,
   TextInput,
-  Image,
-  StatusBar,
-  ScrollView,
-  TouchableOpacity,
-  Keyboard,
   TouchableWithoutFeedback,
+  Image,
+  Keyboard,
+  BackHandler,
 } from "react-native";
-import { StyleSheet, Dimensions } from "react-native";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
-import Widgets from "../widgets/Widgets";
 import { IntakeContext } from "../contexts/Intake";
-import { CartContext } from "../contexts/Getcart";
 import { MobileContext } from "../contexts/MobileContext";
 import { LaptopContext } from "../contexts/LaptopContext";
 import { FridgeContext } from "../contexts/FridgeContext";
 import { WmacContext } from "../contexts/WmachineContext";
-import { Tvcontext } from "../contexts/TvContext";
 import { TabletContext } from "../contexts/TabletContext";
-import { ProfileContext } from "../contexts/ProfileContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Tvcontext } from "../contexts/TvContext";
+import { PathContext } from "../contexts/CheckPath";
 
-const Home = () => {
-  const isFocused = useIsFocused();
-
+const SearchQuery = (props) => {
   const navigation = useNavigation();
 
-  const [search, setSearch] = useState("");
+  const isFocused = useIsFocused();
 
   const [intake, setIntake] = useContext(IntakeContext);
 
-  const [showSideBar, setShowSideBar] = useState(false);
-
-  const [items, setItems] = useContext(CartContext);
+  const [keyBoardShown, setKeyBoardShown] = useState();
 
   const [smData, setSmData] = useContext(MobileContext);
 
@@ -50,26 +39,13 @@ const Home = () => {
 
   const [fridgeData, setFridgeData] = useContext(FridgeContext);
 
-  const [tvData, setTvData] = useContext(Tvcontext);
-
   const [tabletData, setTabletData] = useContext(TabletContext);
 
-  const [profile, setProfile] = useContext(ProfileContext);
+  const [tvData, setTvData] = useContext(Tvcontext);
 
-  const { userName, Pnumber } = profile[0];
+  const [path, setPath] = useContext(PathContext);
 
-  const getIndex = String(userName).indexOf(" ");
-
-  const [width, setWidth] = useState(Dimensions.get("window").width);
-
-  const [sideBarList, setSideBarList] = useState([
-    "All Categories",
-    "My Account",
-    "My Cart",
-    "My Orders",
-    "Report Problem",
-    "Logout",
-  ]);
+  const [search, setSearch] = useState("");
 
   const [showRecommand, setShowRecommand] = useState(false);
 
@@ -77,13 +53,7 @@ const Home = () => {
 
   const [showSM, setShowSM] = useState(false);
 
-  const [foundSM, setFoundSM] = useState(0);
-
   const [foundLP, setFoundLP] = useState();
-
-  const [foundWM, setFoundWM] = useState(false);
-
-  //let foundWM = false;
 
   const [showLP, setShowLP] = useState(false);
 
@@ -105,7 +75,7 @@ const Home = () => {
 
   const [showTb, setShowTb] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (search.length > 1) {
       if (sData.some((i) => i.Sname.includes(search))) {
         setShowSM(true);
@@ -149,10 +119,11 @@ const Home = () => {
   }, [search]);
 
   useLayoutEffect(() => {
+    let isMounted = true;
     fetch(`http://192.168.43.29:4000/api/main/data/sm`)
       .then((res) => res.json())
       .then((result) => {
-        setSdata(result);
+        isMounted ? setSdata(result) : null;
       })
       .catch((err) => {
         console.log(err);
@@ -160,7 +131,7 @@ const Home = () => {
     fetch(`http://192.168.43.29:4000/api/main/data/lp`)
       .then((res) => res.json())
       .then((result) => {
-        setLdata(result);
+        isMounted ? setLdata(result) : null;
       })
       .catch((err) => {
         console.log(err);
@@ -168,7 +139,7 @@ const Home = () => {
     fetch(`http://192.168.43.29:4000/api/main/data/wm`)
       .then((res) => res.json())
       .then((result) => {
-        setWmData(result);
+        isMounted ? setWmData(result) : null;
       })
       .catch((err) => {
         console.log(err);
@@ -176,7 +147,7 @@ const Home = () => {
     fetch(`http://192.168.43.29:4000/api/main/data/Rf`)
       .then((res) => res.json())
       .then((result) => {
-        setRfdata(result);
+        isMounted ? setRfdata(result) : null;
       })
       .catch((err) => {
         console.log(err);
@@ -184,7 +155,7 @@ const Home = () => {
     fetch(`http://192.168.43.29:4000/api/main/data/Tv`)
       .then((res) => res.json())
       .then((result) => {
-        setTvsData(result);
+        isMounted ? setTvsData(result) : null;
       })
       .catch((err) => {
         console.log(err);
@@ -192,38 +163,34 @@ const Home = () => {
     fetch(`http://192.168.43.29:4000/api/main/data/Tb`)
       .then((res) => res.json())
       .then((result) => {
-        //console.log(result);
-        setTbsData(result);
+        isMounted ? setTbsData(result) : null;
       })
       .catch((err) => {
         console.log(err);
       });
+
+    Keyboard.addListener("keyboardDidShow", () => {
+      setKeyBoardShown(true);
+    });
+    Keyboard.addListener("keyboardDidHide", () => {
+      setKeyBoardShown(false);
+    });
+    BackHandler.addEventListener("hardwareBackPress", () => {
+      setIntake(path);
+    });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const logout = async () => {
-    //console.log("logout pressed");
-    try {
-      await AsyncStorage.clear();
-      navigation.navigate("Login");
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const RedirectTo = (name) => {
-    if (name === "All Categories") {
-      navigation.navigate("allCategories");
-    }
-    if (name === "Logout") {
-      logout();
-    }
-    if (name === "My Account") {
-      navigation.navigate("Profile");
-    }
-    if (name === "My Cart") {
-      navigation.navigate("carts");
-    }
-  };
+  useLayoutEffect(() => {
+    setSmData([]);
+    setLpData([]);
+    setFridgeData([]);
+    setWdata([]);
+    setTvData([]);
+    setTabletData([]);
+  }, [isFocused]);
 
   const SearchThis = () => {
     sData.map((value, index) => {
@@ -350,285 +317,72 @@ const Home = () => {
     }
   }, [foundLP]);
 
-  useEffect(() => {
-    setSmData([]);
-    setLpData([]);
-    setWdata([]);
-    setFridgeData([]);
-    setTvData([]);
-    setTabletData([]);
-    setSearch("");
-    setShowSideBar(false);
-  }, [isFocused]);
-
-  const Data = [
-    {
-      name: "All",
-    },
-    {
-      name: "Mobiles",
-    },
-    {
-      name: "Laptops",
-    },
-    {
-      name: "Smart Tv",
-    },
-    {
-      name: "Tablets",
-    },
-  ];
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar
-        backgroundColor={"rgb(20,20,20)"}
-        barStyle="light-content"
-        hidden={false}
+    <SafeAreaView
+      style={{
+        width: Dimensions.get("window").width,
+        height: Dimensions.get("window").height,
+        //backgroundColor: "rgba(255,255,255,1)",
+        alignItems: "center",
+        backgroundColor:
+          keyBoardShown === true ? "rgba(0,0,0,0.66)" : "rgb(255,255,255)",
+      }}
+    >
+      <TextInput
+        style={styles.textinputs}
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Search"
+        placeholderTextColor={"black"}
+        autoFocus={true}
+        onSubmitEditing={() => SearchThis()}
       />
-      <ScrollView>
-        <View style={styles.main}>
-          <Text style={styles.header}>NativeFy</Text>
-          <MaterialIcon
-            name="local-mall"
-            color="white"
-            fontsize={45}
-            style={styles.cartIcon}
-            onPress={() => navigation.navigate("carts")}
-          />
-          <Text
-            style={{
-              position: "absolute",
-              backgroundColor: "white",
-              width: 19,
-              textAlign: "center",
-              borderRadius: 50,
-              color: "black",
-              marginLeft: "auto",
-              marginBottom: -5,
-              fontSize: 13,
-              right: 1,
-              top: 8,
-              fontWeight: "bold",
-            }}
-          >
-            {items.length}
-          </Text>
-        </View>
-        <View style={styles.searchBar}>
-          <Icon
-            name="bars"
-            color="rgb(250,250,250)"
-            style={styles.options}
-            onPress={() => setShowSideBar(true)}
-          />
-          <TextInput
-            style={styles.textinput}
-            onChangeText={setSearch}
-            value={search}
-            placeholder="Search"
-            placeholderTextColor={"white"}
-            onSubmitEditing={() => SearchThis()}
-          />
-          <Icon
-            name="user-circle"
-            color="rgb(250,250,250)"
-            style={styles.cartIcon}
-            onPress={() => {
-              navigation.navigate("Profile");
-            }}
-          />
-        </View>
-        <View style={styles.navbar}>
-          {Data.map((para) => {
-            return (
-              <TouchableOpacity
-                key={para.name}
-                onPress={() => {
-                  if (para.name === "Mobiles") {
-                    setIntake("mobiles");
-                    navigation.navigate("Lists");
-                  } else if (para.name === "Laptops") {
-                    setIntake("Laptops");
-                    navigation.navigate("Lists");
-                  } else if (para.name === "Smart Tv") {
-                    setIntake("Tvs");
-                    navigation.navigate("Lists");
-                  } else if (para.name == "All") {
-                    navigation.navigate("allCategories");
-                  } else if (para.name === "Tablets") {
-                    setIntake("Tablets");
-                    navigation.navigate("Lists");
-                  }
-                }}
-              >
-                <Text style={{ color: "rgb(255,255,255)" }}>{para.name}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <Widgets />
-      </ScrollView>
       <View
         style={{
-          position: "absolute",
           width: Dimensions.get("window").width,
-          height: Dimensions.get("window").height,
-          backgroundColor: "rgba(50,50,50,0.4)",
-          transform:
-            showSideBar === true
-              ? [{ translateX: 0 }]
-              : [
-                  {
-                    translateX: -Dimensions.get("window").width,
-                  },
-                ],
+          height: Dimensions.get("window").height - 60,
+          alignItems: "center",
+          justifyContent: "center",
+          //display: keyBoardShown === true ? "none" : "flex",
         }}
       >
-        <View
-          style={{
-            width: "66%",
-            backgroundColor: "white",
-            height: Dimensions.get("window").height,
-            alignItems: "center",
+        <Image
+          source={{
+            uri: "https://i.ibb.co/x6GfSQp/undraw-the-search-s0xf.png",
           }}
-        >
-          <View
-            style={{
-              position: "relative",
-              width: "100%",
-              backgroundColor: "rgba(0,0,0,0.95)",
-              alignItems: "flex-end",
-            }}
-          >
-            <MaterialIcon
-              name="clear"
-              style={{
-                color: "rgb(250,230,240)",
-                fontSize: 28,
-                //width: "100%",
-                justifyContent: "flex-end",
-                margin: 4,
-              }}
-              onPress={() => setShowSideBar(false)}
-            />
-          </View>
-
-          <View
-            style={{
-              position: "relative",
-              width: "100%",
-              height: 150,
-              justifyContent: "space-evenly",
-              alignItems: "center",
-              backgroundColor: "rgba(0,0,0,0.95)",
-            }}
-          >
-            <Icon
-              name="user-circle"
-              color="rgb(250,250,250)"
-              style={{ fontSize: 80 }}
-            />
-            <View
-              style={{
-                width: "45%",
-                marginLeft: "9%",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-evenly",
-              }}
-            >
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 18,
-                  fontWeight: "700",
-                  //width: "50%",
-                  textAlign: "center",
-                }}
-              >
-                {String(userName).substring(0, getIndex)}
-              </Text>
-              <MaterialIcon
-                name="build"
-                color="rgb(250,250,250)"
-                style={{ fontSize: 16 }}
-                onPress={() => navigation.navigate("Profile")}
-              />
-            </View>
-            <Text style={{ color: "rgb(255,255,255)", fontSize: 15 }}>
-              {Pnumber}
-            </Text>
-          </View>
-          <ScrollView>
-            <View
-              style={{
-                justifyContent: "space-evenly",
-                //height: Dimensions.get("window").height - 350,
-              }}
-            >
-              {sideBarList.map((params, index) => {
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                    }}
-                    onPress={() => RedirectTo(params)}
-                  >
-                    <MaterialIcon
-                      name={
-                        params === "All Categories"
-                          ? "menu"
-                          : params === "My Account"
-                          ? "account-circle"
-                          : params === "My Cart"
-                          ? "local-mall"
-                          : params === "My Orders"
-                          ? "view-list"
-                          : params === "Report Problem"
-                          ? "report-problem"
-                          : params === "Logout"
-                          ? "logout"
-                          : null
-                      }
-                      style={{
-                        fontSize: 28,
-                        color: "rgba(0,0,0,0.77)",
-                        marginRight: 5,
-                      }}
-                    />
-                    <Text
-                      style={{ fontSize: 16, marginBottom: 12, marginTop: 12 }}
-                    >
-                      {params}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
-        </View>
+          style={{
+            width: 280,
+            height: 280,
+            resizeMode: "contain",
+            display: keyBoardShown === true ? "none" : "flex",
+          }}
+        />
       </View>
       <View
         style={{
           width: Dimensions.get("window").width,
-          //height:100
-          backgroundColor: "rgba(50,50,50,0.02)",
+          height: 100,
+          backgroundColor: "rgba(10,10,10,0.02)",
           alignItems: "center",
+          //marginTop: -400,
+          marginTop: -30,
+          //top: 0,
           position: "absolute",
           top: 100,
+          //bottom: Dimensions.get("window").height - 200,
           display: showRecommand ? "flex" : "none",
           zIndex: showRecommand ? 0 : -5,
         }}
       >
         <View
           style={{
-            width: "70%",
+            width: "90%",
+            //height: 30,
+            //marginTop: -30,
             backgroundColor: "rgb(250,250,250)",
             borderRadius: 5,
+            borderWidth: 0.5,
+            borderColor: "rgba(0,0,0,0.9)",
             display: showRecommand ? "flex" : "none",
           }}
         >
@@ -640,7 +394,7 @@ const Home = () => {
           >
             <Text
               style={{
-                margin: 2,
+                margin: 3,
                 fontSize: 16,
                 display: showSM ? "flex" : "none",
                 height: showSM ? "auto" : 0,
@@ -650,6 +404,7 @@ const Home = () => {
             </Text>
           </TouchableWithoutFeedback>
           <TouchableWithoutFeedback
+            accessible={true}
             onPress={() => {
               setIntake("Laptops," + search);
               navigation.navigate("Lists");
@@ -657,7 +412,7 @@ const Home = () => {
           >
             <Text
               style={{
-                margin: 2,
+                margin: 3,
                 fontSize: 16,
                 display: showLP ? "flex" : "none",
                 height: showLP ? "auto" : 0,
@@ -674,7 +429,7 @@ const Home = () => {
           >
             <Text
               style={{
-                margin: 2,
+                margin: 3,
                 fontSize: 16,
                 display: showWm ? "flex" : "none",
                 height: showWm ? "auto" : 0,
@@ -691,7 +446,7 @@ const Home = () => {
           >
             <Text
               style={{
-                margin: 2,
+                margin: 3,
                 fontSize: 16,
                 display: showRf ? "flex" : "none",
                 height: showRf ? "auto" : 0,
@@ -741,77 +496,19 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#fff",
-    alignItems: "center",
-    height: "100%",
-    width: "100%",
-  },
-  main: {
-    //height: Dimensions.get("window").height / 10,
+  textinputs: {
+    width: Dimensions.get("window").width - 10,
     height: 50,
-    justifyContent: "center",
-    backgroundColor: "rgb(20,20,20)",
-    borderBottomColor: "black",
-    width: Dimensions.get("window").width,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 5,
-    zIndex: 99,
-  },
-  nav: {
-    width: Dimensions.get("window").width / 3,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgb(20,20,20)",
-  },
-  header: {
-    color: "rgb(256,250,255)",
-    fontSize: 25,
-  },
-  searchBar: {
-    width: Dimensions.get("window").width,
-    //height: Dimensions.get("window").height / 12,
-    height: 50,
-    backgroundColor: "rgb(20,20,20)",
-    alignItems: "center",
-    justifyContent: "space-evenly",
-    flexDirection: "row",
-    zIndex: 99,
-  },
-  textinput: {
-    width: "70%",
-    height: "80%",
-    backgroundColor: "#343a40",
-    borderRadius: 35,
-    padding: 9,
+    color: "rgba(20,20,20,0.9)",
+    backgroundColor: "rgba(255,255,255,0.95)",
+    marginTop: 5,
+    borderRadius: 5,
+    paddingLeft: 5,
+    paddingRight: 5,
+    borderWidth: 1,
     fontSize: 15,
-    color: "white",
-  },
-  navbar: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height / 15,
-    backgroundColor: "#495057",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    alignItems: "center",
-  },
-  cartIcon: {
-    position: "absolute",
-    right: "3%",
-    width: 30,
-    height: 30,
-    fontSize: 30,
-  },
-  options: {
-    position: "absolute",
-    left: "3%",
-    width: 30,
-    height: 30,
-    fontSize: 30,
+    borderColor: "rgba(0,0,0,0.9)",
   },
 });
 
-export default Home;
+export default SearchQuery;

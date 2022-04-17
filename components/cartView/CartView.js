@@ -37,12 +37,12 @@ const Carts = () => {
   }, []);
 
   useEffect(() => {
-    console.log(items);
+    //console.log(items);
   }, [items]);
 
   return (
     <View>
-      <StatusBar backgroundColor={"rgba(0,0,0,0.9)"} />
+      <StatusBar backgroundColor={"rgba(0,0,0,0.9)"} barStyle="light-content" />
       <View style={styles.container}>
         <View style={styles.header}>
           <MaterialIcon
@@ -85,6 +85,12 @@ const Carts = () => {
                             ? para.LPname
                             : para.Wname
                             ? para.Wname
+                            : para.RfName
+                            ? para.RfName
+                            : para.Tvname
+                            ? para.Tvname
+                            : para.Tbname
+                            ? para.Tbname
                             : null}
                         </Text>
                         <Text style={styles.productPrice}>
@@ -103,10 +109,33 @@ const Carts = () => {
                                 })
                                 .replace(".00", "")
                             : para.Wprice
-                            ? parseInt(para.Wprice).toLocaleString("en-IN", {
-                                style: "currency",
-                                currency: "INR",
-                              })
+                            ? parseInt(para.Wprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
+                            : para.Rfprice
+                            ? parseInt(para.Rfprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
+                            : para.Tvprice
+                            ? parseInt(para.Tvprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
+                            : para.Tbprice
+                            ? parseInt(para.Tbprice)
+                                .toLocaleString("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                })
+                                .replace(".00", "")
                             : null}
                         </Text>
                         <Text style={styles.hurry}>Hurry Up!!!</Text>
@@ -120,6 +149,12 @@ const Carts = () => {
                               ? para.LPpriimg
                               : para.Wpriimg
                               ? para.Wpriimg
+                              : para.Rfpriimg
+                              ? para.Rfpriimg
+                              : para.Tvpriimg
+                              ? para.Tvpriimg
+                              : para.Tbpriimg
+                              ? para.Tbpriimg
                               : null,
                           }}
                           style={styles.priimg}
@@ -155,7 +190,10 @@ const Carts = () => {
                         <MaterialIcon name="delete" style={styles.deleteicon} />
                         <Text style={styles.priBtnText}>Remove</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.secBtns}>
+                      <TouchableOpacity
+                        style={styles.secBtns}
+                        onPress={() => navigation.navigate("checkout")}
+                      >
                         <Text style={styles.secBtnText}>Proceed</Text>
                       </TouchableOpacity>
                     </View>

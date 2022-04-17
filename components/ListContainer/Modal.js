@@ -21,16 +21,7 @@ const Modal = (props) => {
 
   const data = [...props.data];
 
-  //console.log(data);
-
   const navigation = useNavigation();
-
-  console.log(
-    "data reached to modal component" +
-      new Date().toLocaleString().replace(",", "")
-  );
-
-  // "$1,000.00"
 
   return (
     <View>
@@ -68,7 +59,15 @@ const Modal = (props) => {
                       ? para.Simg
                       : para.LPpriimg
                       ? para.LPpriimg
-                      : para.Wpriimg,
+                      : para.Wpriimg
+                      ? para.Wpriimg
+                      : para.Rfpriimg
+                      ? para.Rfpriimg
+                      : para.Tvpriimg
+                      ? para.Tvpriimg
+                      : para.Tbpriimg
+                      ? para.Tbpriimg
+                      : null,
                   }}
                 />
               </View>
@@ -79,20 +78,26 @@ const Modal = (props) => {
                       ? 17
                       : para.LPname !== undefined
                       ? para.LPname.replace(/\s+/g, "").length < 25
-                        ? 17
-                        : 15
-                      : null,
+                        ? 16
+                        : 14
+                      : para.Tbname !== undefined
+                      ? 12.5
+                      : 14,
                     textAlign:
                       index % 2 === 0
                         ? "left"
                         : para.LPname !== undefined
+                        ? "justify"
+                        : para.Tvname !== undefined
+                        ? "justify"
+                        : para.Tbname !== undefined
                         ? "justify"
                         : "right",
                     width: "100%",
                     fontWeight: "bold",
                     paddingBottom: 1,
                     marginBottom: 1,
-                    textTransform: "capitalize",
+                    textTransform: "uppercase",
                   }}
                 >
                   {para.Sname
@@ -101,6 +106,12 @@ const Modal = (props) => {
                     ? para.LPname
                     : para.Wname
                     ? para.Wname
+                    : para.RfName
+                    ? para.RfName
+                    : para.Tvname
+                    ? para.Tvname
+                    : para.Tbname
+                    ? para.Tbname
                     : null}
                 </Text>
                 <Text
@@ -121,13 +132,19 @@ const Modal = (props) => {
                       ? para.LPprice
                       : para.Wprice
                       ? para.Wprice
-                      : "2000"
+                      : para.Rfprice
+                      ? para.Rfprice
+                      : para.Tvprice
+                      ? para.Tvprice
+                      : para.Tbprice
+                      ? para.Tbprice
+                      : null
                   )
                     .toLocaleString("en-IN", {
                       style: "currency",
                       currency: "INR",
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
+                      // minimumFractionDigits: 2,
+                      // maximumFractionDigits: 1,
                     })
                     .replace(".00", "")}
                 </Text>
@@ -157,6 +174,12 @@ const Modal = (props) => {
                         ? para.LPprobr
                         : para.Wcolor
                         ? para.Wcolor
+                        : para.Rfcolor
+                        ? para.Rfcolor
+                        : para.Tvhdmi
+                        ? para.Tvhdmi + " x HDMI"
+                        : para.TbOs
+                        ? para.TbOs
                         : null}
                     </Text>
                     <Text style={{ backgroundColor: "#e9ecef", padding: 1 }}>
@@ -190,6 +213,12 @@ const Modal = (props) => {
                           : para.LPstorage + "GB"
                         : para.WavgCapacity
                         ? para.WavgCapacity + "Kg"
+                        : para.Rfstorage
+                        ? para.Rfstorage + "L"
+                        : para.TvdisplaySize
+                        ? para.TvdisplaySize + "Inch"
+                        : para.TbdisplaySize
+                        ? para.TbdisplaySize + "inch"
                         : null}
                     </Text>
                     <Text style={{ backgroundColor: "#e9ecef", padding: 1 }}>
@@ -199,8 +228,11 @@ const Modal = (props) => {
                       {String(para.Sprocessor).includes("Bionic chip")
                         ? String(para.Sprocessor).replace("Bionic chip", "")
                         : ""}
-                      {para.LPos}
+                      {para.LPos ? para.LPos : null}
                       {para.WRPM !== undefined ? para.WRPM + "RPM" : null}
+                      {para.Rfcool ? para.Rfcool : null}
+                      {para.TvrfRate ? para.TvrfRate : null}
+                      {para.Tbstorage ? para.Tbstorage + "GB" : null}
                     </Text>
                   </View>
                 </View>

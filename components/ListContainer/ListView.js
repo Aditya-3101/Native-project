@@ -11,7 +11,7 @@ import {
   StatusBar,
   Image,
   BackHandler,
-  Platform,
+  Pressable,
 } from "react-native";
 import { useEffect, useState, useLayoutEffect } from "react";
 import { MobileContext } from "../contexts/MobileContext";
@@ -25,10 +25,14 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import Modal from "./Modal";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import Header from "../Header";
-import { borderEndColor } from "react-native/Libraries/Components/View/ReactNativeStyleAttributes";
+import { FridgeContext } from "../contexts/FridgeContext";
+import { Tvcontext } from "../contexts/TvContext";
+import { TabletContext } from "../contexts/TabletContext";
+import { PathContext } from "../contexts/CheckPath";
 
 const ListView = (props) => {
   const isFocused = useIsFocused();
+
   const [smData, setSmData] = useContext(MobileContext);
 
   const [smbData, setSmbData] = useContext(SortPhonesContext);
@@ -40,6 +44,14 @@ const ListView = (props) => {
   const [intake, setIntake] = useContext(IntakeContext);
 
   const [items, setItems] = useContext(CartContext);
+
+  const [fridgeData, setFridgeData] = useContext(FridgeContext);
+
+  const [tvData, setTvData] = useContext(Tvcontext);
+
+  const [tabletData, setTabletData] = useContext(TabletContext);
+
+  const [path, setPath] = useContext(PathContext);
 
   const [search, setSearch] = useState("");
 
@@ -91,7 +103,16 @@ const ListView = (props) => {
     "10Kg",
   ]);
 
+  const [fridgeCapacity, setFridgeCapacity] = useState([
+    "180L",
+    "200L",
+    "300L",
+    "500L",
+  ]);
+
   const lpStorageoptions = [256, 512, 1, 2];
+
+  const tabStorageoptions = [32, 64, 128, 256];
 
   const smRAMoptions = [2, 3, 4, 6, 8, 12];
 
@@ -104,20 +125,43 @@ const ListView = (props) => {
     "Fully Automatic",
   ]);
 
+  const [fridgeFunctionality, setFridgeFunctionality] = useState([
+    "Direct Cool",
+    "Frost Free",
+  ]);
+
+  const [screenQuality, setScreenQuality] = useState([
+    "HD",
+    "HD+",
+    "FHD",
+    "QHD",
+    "UHD",
+  ]);
+
+  const [screenSize, setScreenSize] = useState([
+    "18-24",
+    "24-32",
+    "32-52",
+    "52-76",
+  ]);
+
+  const [tbScreenSize, setTbScreenSize] = useState(["6-8", "8-12", "12-16"]);
+
+  const [tvPrice, setTvPrice] = useState([20000, 40000, 60000, 100000, 150000]);
+
   const priceoptions = [10000, 20000, 40000, 80000, 100000];
 
   const lpPriceOptions = [30000, 50000, 80000, 200000, 400000];
 
   const wPriceOptions = [10000, 30000, 50000, 70000];
 
+  const fridgePriceOptions = [10000, 30000, 50000, 70000];
+
+  const tbPriceOptions = [20000, 30000, 50000, 70000];
+
   const navigation = useNavigation();
 
   const [pages, setpages] = useState(7);
-
-  //const [intake, setIntake] = useState(props.route.params.type);
-
-  //console.log(props);
-  console.log("intake in listview " + intake + "\n");
 
   const sorter = (a, b) => {
     return a.Sprice - b.Sprice;
@@ -126,20 +170,12 @@ const ListView = (props) => {
     arr.sort(sorter);
   };
 
-  //sortByAge(smData);
-
   const dessorter = (a, b) => {
     return b.Sprice - a.Sprice;
   };
   const dessortByAge = (arr) => {
     arr.sort(dessorter);
   };
-
-  //dessortByAge(smData);
-
-  //console.log(intake);
-
-  //console.log("intake" + intake);
 
   useLayoutEffect(() => {
     let isMounted = true;
@@ -149,9 +185,6 @@ const ListView = (props) => {
         .then((res) => res.json())
         .then((result) => {
           isMounted ? setSmData(result) : null;
-          //setStorageOptions(result.Object.Sstorage)
-          //setSmData(result);
-          //console.log(result);
           setLoading(false);
         })
         .catch((error) => {
@@ -166,12 +199,10 @@ const ListView = (props) => {
           console.log(error);
         });
     } else if (intake === "Laptops") {
-      console.log(intake == "Laptops");
       isMounted = true;
       fetch("http://192.168.43.29:4000/api/main/laptops")
         .then((res) => res.json())
         .then((result) => {
-          console.log(result);
           setLoading(false);
           isMounted ? setLpData(result) : null;
         })
@@ -191,7 +222,6 @@ const ListView = (props) => {
       fetch("http://192.168.43.29:4000/api/main/wmachines")
         .then((res) => res.json())
         .then((result) => {
-          console.log(result);
           setLoading(false);
           isMounted ? setWdata(result) : null;
         })
@@ -206,6 +236,60 @@ const ListView = (props) => {
         .catch((error) => {
           console.log(error);
         });
+    } else if (intake === "Fridge") {
+      fetch("http://192.168.43.29:4000/api/main/Refrigerators")
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setFridgeData(Result) : null;
+          setLoading(false);
+        })
+        .catch((Err) => {
+          console.log(Err);
+        });
+      fetch("http://192.168.43.29:4000/api/main/Refrigerators/sort/brands")
+        .then((res) => res.json())
+        .then((Result) => {
+          setSmbData(Result);
+        })
+        .catch((Err) => {
+          console.log(Err);
+        });
+    } else if (intake === "Tvs") {
+      fetch("http://192.168.43.29:4000/api/main/televisions")
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setTvData(Result) : null;
+          setLoading(false);
+        })
+        .catch((Err) => {
+          console.log(Err);
+        });
+      fetch("http://192.168.43.29:4000/api/main/televisions/sort/brands")
+        .then((res) => res.json())
+        .then((Result) => {
+          setSmbData(Result);
+        })
+        .catch((Err) => {
+          console.log(Err);
+        });
+    } else if (intake === "Tablets") {
+      fetch("http://192.168.43.29:4000/api/main/Tablets")
+        .then((res) => res.json())
+        .then((Result) => {
+          isMounted ? setTabletData(Result) : null;
+          setLoading(false);
+        })
+        .catch((Err) => {
+          console.log(Err);
+        });
+      fetch("http://192.168.43.29:4000/api/main/Tablets/sort/brands")
+        .then((res) => res.json())
+        .then((Result) => {
+          setSmbData(Result);
+        })
+        .catch((Err) => {
+          console.log(Err);
+        });
     } else if (String(intake).length > 9) {
       isMounted = true;
       const getThis = String(intake).split(",");
@@ -213,7 +297,6 @@ const ListView = (props) => {
         fetch(`http://192.168.43.29:4000/api/main/search?get=${getThis[1]}`)
           .then((res) => res.json())
           .then((result) => {
-            console.log(result.ProductType);
             isMounted ? setSmData(result) : null;
             setLoading(false);
           })
@@ -264,12 +347,187 @@ const ListView = (props) => {
           .catch((err) => {
             alert(err);
           });
+      } else if (getThis[0] === "Fridges") {
+        fetch(`http://192.168.43.29:4000/api/main/search/Rf?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setFridgeData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/wm/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Televisions") {
+        fetch(`http://192.168.43.29:4000/api/main/search/Tv?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setTvData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/Tv/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Tablets") {
+        fetch(`http://192.168.43.29:4000/api/main/search/Tb?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setTabletData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/Tb/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      }
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isFocused]);
+
+  useLayoutEffect(() => {
+    let isMounted = true;
+    if (String(intake).length > 9) {
+      isMounted = true;
+      const getThis = String(intake).split(",");
+      if (getThis[0] === "Mobiles") {
+        fetch(`http://192.168.43.29:4000/api/main/search?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((result) => {
+            isMounted ? setSmData(result) : null;
+            setLoading(false);
+          })
+          .catch((err) => console.log(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Laptops") {
+        fetch(`http://192.168.43.29:4000/api/main/search/lp?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setLpData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/lp/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Wmachine") {
+        fetch(`http://192.168.43.29:4000/api/main/search/wm?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setWdata(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/wm/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Fridges") {
+        fetch(`http://192.168.43.29:4000/api/main/search/Rf?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setFridgeData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/wm/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Televisions") {
+        fetch(`http://192.168.43.29:4000/api/main/search/Tv?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setTvData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/Tv/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } else if (getThis[0] === "Tablets") {
+        fetch(`http://192.168.43.29:4000/api/main/search/Tb?get=${getThis[1]}`)
+          .then((res) => res.json())
+          .then((Result) => {
+            isMounted ? setTabletData(Result) : null;
+            setLoading(false);
+          })
+          .catch((err) => alert(err));
+        fetch(
+          `http://192.168.43.29:4000/api/main/search/Tb/getBrands?get=${getThis[1]}`
+        )
+          .then((Res) => Res.json())
+          .then((result) => {
+            setSmbData(result);
+          })
+          .catch((err) => {
+            alert(err);
+          });
       }
     }
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [intake]);
 
   const Regain = () => {
     smData.length > 0
@@ -299,6 +557,33 @@ const ListView = (props) => {
           .catch((err) => {
             console.log(err);
           })
+      : fridgeData.length > 0
+      ? fetch("http://192.168.43.29:4000/api/main/Refrigerators")
+          .then((res) => res.json())
+          .then((Result) => {
+            setFridgeData(Result);
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+      : tvData.length > 0
+      ? fetch("http://192.168.43.29:4000/api/main/televisions")
+          .then((res) => res.json())
+          .then((Result) => {
+            setTvData(Result);
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+      : tabletData.length > 0
+      ? fetch("http://192.168.43.29:4000/api/main/tablets")
+          .then((res) => res.json())
+          .then((Result) => {
+            setTabletData(Result);
+          })
+          .catch((err) => {
+            console.log(err);
+          })
       : null;
   };
 
@@ -312,16 +597,12 @@ const ListView = (props) => {
 
   const getNames = (names) => {
     getBrands.push(`"${names}"`);
-    console.log(names);
     getMultifilters.push(names);
-    //smData.length = 0;
   };
 
   const getRAM = (names) => {
     getRam.push(`${names}`);
     getMultifilters.push(names);
-    console.log(getMultifilters);
-    //smData.length = 0;
   };
 
   const getStoragelist = (names) => {
@@ -332,14 +613,9 @@ const ListView = (props) => {
   const getPricelist = (names) => {
     getPrice.push(names);
     getMultifilters.push(names);
-    console.log(names);
   };
-  /*const brandName = smbData.map((para) => {
-    return para.Sbrand;
-  });*/
 
   const getKeys = (keys) => {
-    console.log(keys + " line 136");
     return keys;
   };
 
@@ -353,7 +629,6 @@ const ListView = (props) => {
         (getPrice.length == 0)
       ) {
         const getnames = getMultifilters.join();
-        console.log(getnames + " line 138");
 
         fetch(
           `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names/rams?names=${getMultifilters
@@ -367,6 +642,7 @@ const ListView = (props) => {
             setSmData(Result);
             setGetMultifilters([]);
             setUnClicked(false);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -378,7 +654,6 @@ const ListView = (props) => {
         (getStorage.length > 0)
       ) {
         const getnames = getMultifilters.join();
-        console.log(getnames);
 
         fetch(
           `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/names/ram/storage?name=${getMultifilters
@@ -390,6 +665,7 @@ const ListView = (props) => {
             setSmData(Result);
             setUnClicked(false);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -401,11 +677,11 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((result) => {
             setSmData(result);
-            console.log(smData.length);
             cpygetbrands.push(result);
             setGetMultifilters([]);
             setCpyGetBrandsLength(getBrands);
             setGetBrands([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -422,10 +698,10 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((result) => {
             setSmData(result);
-            console.log("RAM Section", result);
             setCpyGetRamsLength(getRam);
             setGetRam([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -444,6 +720,7 @@ const ListView = (props) => {
             setCpyGetStorageLength(getStorage);
             setGetStorage([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((err) => {
             console.log(err);
@@ -463,6 +740,7 @@ const ListView = (props) => {
             setCpyGetPriceLength(getPrice);
             setGetPrice([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -476,7 +754,6 @@ const ListView = (props) => {
         (getBrands.length > 0)
       ) {
         const getnames = getMultifilters.join();
-        console.log(getnames + " line 138");
 
         fetch(
           `http://192.168.43.29:4000/api/main/laptops/sort/Brands/names/rams?names=${getMultifilters
@@ -490,6 +767,7 @@ const ListView = (props) => {
             setLpData(Result);
             setGetMultifilters([]);
             setUnClicked(false);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -500,9 +778,6 @@ const ListView = (props) => {
         (getStorage.length > 0)
       ) {
         const getnames = getMultifilters.join();
-        console.log(
-          getnames + "multiple queries with ram storage and brandName"
-        );
 
         fetch(
           `http://192.168.43.29:4000/api/main/laptops/sort/Brands/names/ram/storage?name=${getMultifilters
@@ -511,10 +786,10 @@ const ListView = (props) => {
         )
           .then((res) => res.json())
           .then((Result) => {
-            console.log(Result);
             setLpData(Result);
             setUnClicked(false);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -531,11 +806,11 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((result) => {
             setLpData(result);
-            console.log(lpData.length);
             cpygetbrands.push(result);
             setCpyGetBrandsLength(getBrands);
             setGetBrands([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -552,10 +827,10 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((result) => {
             setLpData(result);
-            console.log("RAM Section", result);
             setCpyGetRamsLength(getRam);
             setGetRam([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -575,6 +850,7 @@ const ListView = (props) => {
             setCpyGetStorageLength(getStorage);
             setGetStorage([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((err) => {
             console.log(err);
@@ -594,6 +870,7 @@ const ListView = (props) => {
             setCpyGetPriceLength(getPrice);
             setGetPrice([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -607,7 +884,6 @@ const ListView = (props) => {
         (getBrands.length > 0)
       ) {
         const getnames = getMultifilters.join();
-        console.log(getnames + " line 138");
 
         fetch(
           `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/names/func?names=${
@@ -625,6 +901,7 @@ const ListView = (props) => {
             setWdata(Result);
             setGetMultifilters([]);
             setUnClicked((prev) => !prev);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -635,9 +912,6 @@ const ListView = (props) => {
         (getStorage.length > 0)
       ) {
         const getnames = getMultifilters.join();
-        console.log(
-          getnames + "multiple queries with ram storage and brandName"
-        );
 
         fetch(
           `http://192.168.43.29:4000/api/main/wmachines/sort/Brands/names/func/capacity?names=${
@@ -652,10 +926,10 @@ const ListView = (props) => {
         )
           .then((res) => res.json())
           .then((Result) => {
-            console.log(Result);
             setLpData(Result);
             setGetMultifilters([]);
             setUnClicked(false);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -672,11 +946,11 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((result) => {
             setWdata(result);
-            console.log(wdata.length);
             cpygetbrands.push(result);
             setCpyGetBrandsLength(getBrands);
             setGetBrands([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -693,10 +967,10 @@ const ListView = (props) => {
           .then((res) => res.json())
           .then((result) => {
             setWdata(result);
-            //console.log("RAM Section", result);
             setCpyGetRamsLength(getRam);
             setGetRam([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -718,6 +992,7 @@ const ListView = (props) => {
             );
             setGetStorage([]);
             setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((err) => {
             console.log(err);
@@ -737,6 +1012,424 @@ const ListView = (props) => {
             setCpyGetPriceLength(getPrice);
             setGetPrice([]);
             setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    } else if (fridgeData.length > 1) {
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length === 0) &
+        (getBrands.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/names/func?names=${
+            fridgeFunctionality.includes(getMultifilters[0]) == true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&func=${
+            fridgeFunctionality.includes(getMultifilters[1]) == true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setFridgeData(Result);
+            setGetMultifilters([]);
+            setUnClicked((prev) => !prev);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/names/func/capacity?names=${
+            fridgeFunctionality.includes(getMultifilters[0]) === true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&func=${
+            fridgeFunctionality.includes(getMultifilters[1]) === true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&cap=${getStorage.join().match(/\d+/g).join("")}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setLpData(Result);
+            setGetMultifilters([]);
+            setUnClicked(false);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getBrands.length > 0) &
+        (getRam.length == 0) &
+        (getStorage.length === 0) &
+        (getPrice.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/names?brand=${getBrands.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            //setWdata(result);
+            setFridgeData(result);
+            cpygetbrands.push(result);
+            setCpyGetBrandsLength(getBrands);
+            setGetBrands([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getRam.length > 0) &
+        (getBrands.length == 0) &
+        (getPrice.length == 0) &
+        (getStorage.length == 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/functionality?types=${getRam.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setFridgeData(result);
+            setCpyGetRamsLength(getRam);
+            setGetRam([]);
+            setShowFilters(false);
+
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getStorage.length > 0) &
+        (getRam.length === 0) &
+        (getPrice.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/capacity?storage=${getStorage.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setFridgeData(result);
+            setCpyGetStorageLength(
+              getStorage.length > 2 ? getStorage.slice(0, 2) : getStorage
+            );
+            setGetStorage([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else if (
+        (getPrice.length > 0) &
+        (getRam.length === 0) &
+        (getStorage.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/Price?price=${getPrice.join()}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setFridgeData(Result);
+            setCpyGetPriceLength(getPrice);
+            setGetPrice([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    } else if (tvData.length > 1) {
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length === 0) &
+        (getBrands.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/televisions/sort/Brands/names/func?names=${
+            screenQuality.includes(getMultifilters[0]) == true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&func=${
+            screenQuality.includes(getMultifilters[1]) == true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setTvData(Result);
+            setGetMultifilters([]);
+            setUnClicked((prev) => !prev);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/televisions/sort/Brands/names/func/capacity?names=${
+            screenQuality.includes(getMultifilters[0]) === true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&func=${
+            screenQuality.includes(getMultifilters[1]) === true
+              ? getMultifilters[1]
+              : getMultifilters[0]
+          }&cap=${getStorage.join()}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setTvData(Result);
+            setGetMultifilters([]);
+            setUnClicked(false);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getBrands.length > 0) &
+        (getRam.length == 0) &
+        (getStorage.length === 0) &
+        (getPrice.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/televisions/sort/Brands/names?brand=${getBrands.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setTvData(result);
+            cpygetbrands.push(result);
+            setCpyGetBrandsLength(getBrands);
+            setGetBrands([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getRam.length > 0) &
+        (getBrands.length == 0) &
+        (getPrice.length == 0) &
+        (getStorage.length == 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/televisions/sort/Brands/quality?types=${getRam.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setTvData(result);
+            setCpyGetRamsLength(getRam);
+            setGetRam([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getStorage.length > 0) &
+        (getRam.length === 0) &
+        (getPrice.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/televisions/sort/Brands/size?storage=${getStorage.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setTvData(result);
+            setCpyGetStorageLength(
+              getStorage.length > 2 ? getStorage.slice(0, 2) : getStorage
+            );
+            setGetStorage([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else if (
+        (getPrice.length > 0) &
+        (getRam.length === 0) &
+        (getStorage.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/televisions/sort/Brands/Price?price=${getPrice.join()}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setTvData(Result);
+            setCpyGetPriceLength(getPrice);
+            setGetPrice([]);
+            setShowFilters(false);
+
+            setGetMultifilters([]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    }
+    if (tabletData.length > 1) {
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getBrands.length > 0) &
+        (getStorage.length == 0) &
+        (getPrice.length == 0)
+      ) {
+        const getnames = getMultifilters.join();
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/tablets/sort/Brands/names/size?names=${getMultifilters
+            .join()
+            .replace(/[^a-zA-Z]/g, "")}&rams=${getMultifilters
+            .join()
+            .replace(/[^\d-]/g, "")}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setTabletData(Result);
+            setGetMultifilters([]);
+            setUnClicked(false);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      if (
+        (getMultifilters.length > 1) &
+        (getRam.length > 0) &
+        (getStorage.length > 0)
+      ) {
+        const getnames = getMultifilters.join();
+
+        fetch(
+          `http://192.168.43.29:4000/api/main/tablets/sort/Brands/names/ram/storage?name=${getMultifilters
+            .join()
+            .replace(/[^a-zA-Z]/g, "")}&ram=${getRam}&storage=${getStorage}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setTabletData(Result);
+            setUnClicked(false);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if ((getBrands.length > 0) & (getRam.length == 0)) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/tablets/sort/Brands/names?brand=${getBrands.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setTabletData(result);
+            cpygetbrands.push(result);
+            setGetMultifilters([]);
+            setCpyGetBrandsLength(getBrands);
+            setGetBrands([]);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getRam.length > 0) &
+        (getBrands.length == 0) &
+        (getStorage.length == 0) &
+        (getPrice.length == 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/Tablets/sort/Brands/Size?Size=${getRam.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setTabletData(result);
+            setCpyGetRamsLength(
+              getRam.length > 2 ? getRam.slice(0, 2) : getRam
+            );
+            setGetRam([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (
+        (getStorage.length > 0) &
+        (getRam.length === 0) &
+        (getPrice.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/tablets/sort/Brands/storage?storage=${getStorage.join()}`
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            setTabletData(result);
+            setCpyGetStorageLength(getStorage);
+            setGetStorage([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else if (
+        (getPrice.length > 0) &
+        (getRam.length === 0) &
+        (getStorage.length === 0) &
+        (getBrands.length === 0)
+      ) {
+        fetch(
+          `http://192.168.43.29:4000/api/main/tablets/sort/Brands/Price?price=${getPrice.join()}`
+        )
+          .then((res) => res.json())
+          .then((Result) => {
+            setTabletData(Result);
+            setCpyGetPriceLength(getPrice);
+            setGetPrice([]);
+            setGetMultifilters([]);
+            setShowFilters(false);
           })
           .catch((error) => {
             console.log(error);
@@ -747,17 +1440,39 @@ const ListView = (props) => {
 
   return (
     <>
-      <ScrollView>
-        <StatusBar hidden={false} backgroundColor={"rgba(0,0,0,0.9)"} />
+      <ScrollView scrollEnabled={showFilters === true ? false : true}>
+        <StatusBar backgroundColor={"rgb(20,20,20)"} barStyle="light-content" />
         <View>
           <Header
             name={
               intake == "mobiles"
                 ? "Mobiles"
+                : String(intake).includes("Mobiles")
+                ? "Mobiles"
                 : intake == "Laptops"
+                ? "Laptops"
+                : String(intake).includes("Laptops")
                 ? "Laptops"
                 : intake == "Wmachine"
                 ? "Washing Machines"
+                : String(intake).includes("Wmachine")
+                ? "Washing Machines"
+                : intake === "Fridge"
+                ? "Refrigerators"
+                : String(intake).includes("Fridge")
+                ? "Refrigerators"
+                : String(intake).includes("Refrigerator")
+                ? "Refrigerators"
+                : intake === "Tvs"
+                ? "Televisions"
+                : String(intake).includes("Tv")
+                ? "Televisions"
+                : String(intake).includes("Televisions")
+                ? "Televisions"
+                : intake === "Tablets"
+                ? "Tablets"
+                : String(intake).includes("Tablets")
+                ? "Tablets"
                 : null
             }
           />
@@ -780,7 +1495,12 @@ const ListView = (props) => {
               onChangeText={setSearch}
               value={search}
               placeholder="Search"
+              placeholderTextColor={"white"}
               style={styles.searchInput}
+              onFocus={() => {
+                setPath(intake);
+                navigation.navigate("Search");
+              }}
             />
             <MaterialIcon
               name="local-mall"
@@ -926,6 +1646,30 @@ const ListView = (props) => {
                       setSortType("Price:Low to High");
                       return a.Wprice - b.Wprice;
                     });
+                  } else if (fridgeData.length > 1) {
+                    fridgeData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(true);
+                      setSortType("Price:Low to High");
+                      return a.Rfprice - b.Rfprice;
+                    });
+                  } else if (tvData.length > 1) {
+                    tvData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(true);
+                      setSortType("Price:Low to High");
+                      return a.Tvprice - b.Tvprice;
+                    });
+                  } else if (tabletData.length > 1) {
+                    tabletData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(true);
+                      setSortType("Price:Low to High");
+                      return a.Tbprice - b.Tbprice;
+                    });
                   }
                 }}
               >
@@ -959,6 +1703,24 @@ const ListView = (props) => {
                     });
                   } else if (wdata.length > 1) {
                     wdata.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(false);
+                      return a.ProductId - b.ProductId;
+                    });
+                  } else if (fridgeData.length > 1) {
+                    fridgeData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(false);
+                      return a.ProductId - b.ProductId;
+                    });
+                  } else if (tvData.length > 1) {
+                    tvData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(false);
+                      return a.ProductId - b.ProductId;
+                    });
+                  } else if (tabletData.length > 1) {
+                    tabletData.sort((a, b) => {
                       setShowCart(false);
                       setShowRemover(false);
                       return a.ProductId - b.ProductId;
@@ -1005,6 +1767,30 @@ const ListView = (props) => {
                       setSortLowtoHigh(false);
                       setSortType("Price:High to Low");
                       return b.Wprice - a.Wprice;
+                    });
+                  } else if (fridgeData.length > 1) {
+                    fridgeData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(false);
+                      setSortType("Price:High to Low");
+                      return b.Rfprice - a.Rfprice;
+                    });
+                  } else if (tvData.length > 1) {
+                    tvData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(false);
+                      setSortType("Price:High to Low");
+                      return b.Tvprice - a.Tvprice;
+                    });
+                  } else if (tabletData.length > 1) {
+                    tabletData.sort((a, b) => {
+                      setShowCart(false);
+                      setShowRemover(true);
+                      setSortLowtoHigh(false);
+                      setSortType("Price:High to Low");
+                      return b.Tbprice - a.Tbprice;
                     });
                   }
                 }}
@@ -1075,6 +1861,24 @@ const ListView = (props) => {
                     setShowRemover(false);
                     return a.ProductId - b.ProductId;
                   });
+                } else if (fridgeData.length > 1) {
+                  fridgeData.sort((a, b) => {
+                    setShowRemover(false);
+                    setSortType("Relevance");
+                    return a.ProductId - b.ProductId;
+                  });
+                } else if (tvData.length > 1) {
+                  tvData.sort((a, b) => {
+                    setShowRemover(false);
+                    setSortType("Relevance");
+                    return a.ProductId - b.ProductId;
+                  });
+                } else if (tabletData.length > 1) {
+                  tabletData.sort((a, b) => {
+                    setShowRemover(false);
+                    setSortType("Relevance");
+                    return a.ProductId - b.ProductId;
+                  });
                 }
               }}
             >
@@ -1112,6 +1916,24 @@ const ListView = (props) => {
                   wdata.sort((a, b) => {
                     setSortType("Relevance");
                     setShowRemover(false);
+                    return a.ProductId - b.ProductId;
+                  });
+                } else if (fridgeData.length > 1) {
+                  fridgeData.sort((a, b) => {
+                    setShowRemover(false);
+                    setSortType("Relevance");
+                    return a.ProductId - b.ProductId;
+                  });
+                } else if (tvData.length > 1) {
+                  tvData.sort((a, b) => {
+                    setShowRemover(false);
+                    setSortType("Relevance");
+                    return a.ProductId - b.ProductId;
+                  });
+                } else if (tabletData.length > 1) {
+                  tabletData.sort((a, b) => {
+                    setShowRemover(false);
+                    setSortType("Relevance");
                     return a.ProductId - b.ProductId;
                   });
                 }
@@ -1168,9 +1990,7 @@ const ListView = (props) => {
             }}
           >
             {cpygetBrandslength.map((pars, index) => {
-              console.log(cpygetBrandslength.length, " line 533");
               if (cpygetBrandslength.length === 2) {
-                console.log("length is 2");
                 return (
                   <TouchableOpacity
                     key={index}
@@ -1184,13 +2004,8 @@ const ListView = (props) => {
                       position: "relative",
                       display:
                         cpygetBrandslength.length === 2 ? "flex" : "none",
-                      //display: unClicked === pars ? "none" : "flex",
                     }}
                     onPress={() => {
-                      console.log("line 555 " + pars);
-                      console.log(
-                        cpygetBrandslength.join().replace(`${pars}`, "")
-                      );
                       smData.length > 0
                         ? fetch(
                             `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
@@ -1199,12 +2014,10 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              //console.log(Result);
                               setSmData(Result);
-                              //cpygetBrandslength.length - 1;
                               setCpyGetBrandsLength(
                                 cpygetBrandslength.filter((e) => e !== pars)
-                              ); // will return ['A', 'C']
+                              );
                             })
                             .catch((error) => {
                               console.log(error);
@@ -1217,12 +2030,10 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              //console.log(Result);
                               setLpData(Result);
-                              //cpygetBrandslength.length - 1;
                               setCpyGetBrandsLength(
                                 cpygetBrandslength.filter((e) => e !== pars)
-                              ); // will return ['A', 'C']
+                              );
                             })
                             .catch((error) => {
                               console.log(error);
@@ -1242,6 +2053,54 @@ const ListView = (props) => {
                             })
                             .catch((Err) => {
                               console.log(Err);
+                            })
+                        : fridgeData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setFridgeData(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((Err) => {
+                              console.log(Err);
+                            })
+                        : tvData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/televisions/sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTvData(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((Err) => {
+                              console.log(Err);
+                            })
+                        : tabletData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/tablets/sort/Brands/sName/rNames?sName=${pars}&rName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTabletData(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
                             })
                         : null;
                     }}
@@ -1270,7 +2129,6 @@ const ListView = (props) => {
                   </TouchableOpacity>
                 );
               } else if (cpygetBrandslength.length === 3) {
-                console.log("length is 3");
                 return (
                   <TouchableOpacity
                     key={index}
@@ -1284,14 +2142,8 @@ const ListView = (props) => {
                       position: "relative",
                       display:
                         cpygetBrandslength.length === 3 ? "flex" : "none",
-                      //display: unClicked === pars ? "none" : "flex",
                     }}
                     onPress={() => {
-                      console.log("line 555 ", pars);
-                      //setUnClicked(pars);
-                      console.log(
-                        cpygetBrandslength.join().replace(`${pars}`, "")
-                      );
                       smData.length > 0
                         ? fetch(
                             `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
@@ -1333,6 +2185,54 @@ const ListView = (props) => {
                             .then((res) => res.json())
                             .then((Result) => {
                               setWdata(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : fridgeData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setFridgeData(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : tvData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/televisions/sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTvData(Result);
+                              setCpyGetBrandsLength(
+                                cpygetBrandslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : tabletData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/tablets/sort/Brands/seName/reNames?seName=${pars}&reName=${cpygetBrandslength
+                              .join()
+                              .replace(pars, "")}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTabletData(Result);
                               setCpyGetBrandsLength(
                                 cpygetBrandslength.filter((e) => e !== pars)
                               );
@@ -1419,10 +2319,6 @@ const ListView = (props) => {
                       position: "relative",
                     }}
                     onPress={() => {
-                      console.log("line 555 " + pars);
-                      console.log(
-                        cpygetRamslength.join().replace(`${pars}`, "")
-                      );
                       smData.length > 0
                         ? fetch(
                             `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/RAM/sName/rNames?sName=${pars}&rName=${cpygetRamslength.filter(
@@ -1431,12 +2327,10 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              //console.log(Result);
                               setSmData(Result);
-                              //cpygetBrandslength.length - 1;
                               setCpyGetRamsLength(
                                 cpygetRamslength.filter((e) => e !== pars)
-                              ); // will return ['A', 'C']
+                              );
                             })
                             .catch((error) => {
                               console.log(error);
@@ -1449,12 +2343,10 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              console.log(Result);
                               setLpData(Result);
-                              //cpygetBrandslength.length - 1;
                               setCpyGetRamsLength(
                                 cpygetRamslength.filter((e) => e !== pars)
-                              ); // will return ['A', 'C']
+                              );
                             })
                             .catch((error) => {
                               console.log(error);
@@ -1467,12 +2359,58 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              console.log(Result);
                               setWdata(Result);
-                              //cpygetBrandslength.length - 1;
                               setCpyGetRamsLength(
                                 cpygetRamslength.filter((e) => e !== pars)
-                              ); // will return ['A', 'C']
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : fridgeData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/func/sName/rNames?sName=${pars}&rName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setFridgeData(Result);
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : tvData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/televisions/sort/Brands/func/sName/rNames?sName=${pars}&rName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTvData(Result);
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : tabletData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/tablets/sort/Brands/Size/sName/rNames?sName=${pars}&rName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTabletData(Result);
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              );
                             })
                             .catch((error) => {
                               console.log(error);
@@ -1517,10 +2455,6 @@ const ListView = (props) => {
                       position: "relative",
                     }}
                     onPress={() => {
-                      console.log("line 555 " + pars);
-                      console.log(
-                        cpygetRamslength.join().replace(`${pars}`, "")
-                      );
                       smData.length > 0
                         ? fetch(
                             `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/RAM/seName/reNames?seName=${pars}&reName=${cpygetRamslength.filter(
@@ -1529,12 +2463,10 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              //console.log(Result);
                               setSmData(Result);
-                              //cpygetBrandslength.length - 1;
                               setCpyGetRamsLength(
                                 cpygetRamslength.filter((e) => e !== pars)
-                              ); // will return ['A', 'C']
+                              );
                             })
                             .catch((error) => {
                               console.log(error);
@@ -1548,6 +2480,22 @@ const ListView = (props) => {
                             .then((res) => res.json())
                             .then((Result) => {
                               setLpData(Result);
+                              setCpyGetRamsLength(
+                                cpygetRamslength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : tvData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/televisions/sort/Brands/func/seName/reNames?seName=${pars}&reName=${cpygetRamslength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTvData(Result);
                               setCpyGetRamsLength(
                                 cpygetRamslength.filter((e) => e !== pars)
                               );
@@ -1571,13 +2519,12 @@ const ListView = (props) => {
                         textAlign: "center",
                       }}
                     >
-                      {/*String(pars.Sbrand ? pars.Sbrand : pars).replace(
-                            /"/g,
-                            ""
-                          )}*/}
-                      {pars.Sram
-                        ? String(pars.Sram).replace(/"/g, "").concat("GB")
-                        : String(pars).replace(/"/g, "").concat("GB")}
+                      {/*{pars ^ (0 == pars)
+                        ? String(pars).replace(/"/g, "").concat("GB")
+                        : String(pars).replace(/"/g, "").concat("")}*/}
+                      {pars ^ (0 == pars)
+                        ? String(pars).replace(/"/g, "").concat("GB")
+                        : String(pars).replace(/"/g, "").concat("")}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -1587,6 +2534,7 @@ const ListView = (props) => {
                     key={index}
                     style={{
                       flexDirection: "row",
+
                       minWidth: 100,
                       maxWidth: 130,
                       height: 30,
@@ -1619,6 +2567,8 @@ const ListView = (props) => {
                     >
                       {pars ^ (0 == pars)
                         ? String(pars).replace(/"/g, "").concat("GB")
+                        : tabletData.length > 0
+                        ? pars + "Inch"
                         : String(pars).replace(/"/g, "").concat("")}
                     </Text>
                   </TouchableOpacity>
@@ -1640,10 +2590,6 @@ const ListView = (props) => {
                       position: "relative",
                     }}
                     onPress={() => {
-                      console.log("line 555 " + pars);
-                      console.log(
-                        cpygetRamslength.join().replace(`${pars}`, "")
-                      );
                       smData.length > 0
                         ? fetch(
                             `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength.filter(
@@ -1668,13 +2614,7 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              console.log(Result);
                               setLpData(Result);
-                              console.log(
-                                cpygetStoragelength
-                                  .join()
-                                  .replace(`${pars}`, "")
-                              );
                               setCpyGetStorageLength(
                                 cpygetStoragelength.filter((e) => e !== pars)
                               );
@@ -1690,13 +2630,55 @@ const ListView = (props) => {
                           )
                             .then((res) => res.json())
                             .then((Result) => {
-                              console.log(Result);
                               setWdata(Result);
-                              console.log(
-                                cpygetStoragelength
-                                  .join()
-                                  .replace(`${pars}`, "")
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
                               );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : fridgeData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/Refrigerators/sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setFridgeData(Result);
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : tvData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/televisions/sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTvData(Result);
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
+                        : tabletData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/tablets/sort/Brands/Storage/sName/rNames?sName=${pars}&rName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTabletData(Result);
                               setCpyGetStorageLength(
                                 cpygetStoragelength.filter((e) => e !== pars)
                               );
@@ -1778,20 +2760,15 @@ const ListView = (props) => {
                       position: "relative",
                     }}
                     onPress={() => {
-                      console.log("line 555 " + pars);
-                      console.log(
-                        cpygetStoragelength.join().replace(`${pars}`, "")
-                      );
                       smData.length > 0
                         ? fetch(
-                            `http://192.168.43.29:4000/api/main/smartphones//sort/Brands/Storage/seName/reNames?seName=${pars}&reName=${cpygetStoragelength.filter(
+                            `http://192.168.43.29:4000/api/main/smartphones/sort/Brands/Storage/seName/reNames?seName=${pars}&reName=${cpygetStoragelength.filter(
                               (e) => e !== pars
                             )}`
                           )
                             .then((res) => res.json())
                             .then((Result) => {
                               setSmData(Result);
-                              console.log(Result);
                               setCpyGetStorageLength(
                                 cpygetStoragelength.filter((e) => e !== pars)
                               );
@@ -1808,7 +2785,6 @@ const ListView = (props) => {
                             .then((res) => res.json())
                             .then((Result) => {
                               setLpData(Result);
-                              console.log(Result);
                               setCpyGetStorageLength(
                                 cpygetStoragelength.filter((e) => e !== pars)
                               );
@@ -1817,7 +2793,23 @@ const ListView = (props) => {
                               console.log(error);
                             })
                         : wdata.length > 0
-                        ? Regain
+                        ? Regain()
+                        : tabletData.length > 0
+                        ? fetch(
+                            `http://192.168.43.29:4000/api/main/tablets/sort/Brands/Storage/seName/reNames?seName=${pars}&reName=${cpygetStoragelength.filter(
+                              (e) => e !== pars
+                            )}`
+                          )
+                            .then((res) => res.json())
+                            .then((Result) => {
+                              setTabletData(Result);
+                              setCpyGetStorageLength(
+                                cpygetStoragelength.filter((e) => e !== pars)
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            })
                         : null;
                     }}
                   >
@@ -1899,7 +2891,7 @@ const ListView = (props) => {
             style={{
               width: Dimensions.get("window").width,
               flexDirection: "row",
-              height: 50,
+              height: 40,
               paddingLeft: 10,
               alignItems: "center",
               backgroundColor: "white",
@@ -1914,8 +2906,8 @@ const ListView = (props) => {
           <View
             style={{
               width: Dimensions.get("window").width,
-              minHeight: 400,
-              maxHeight: 600,
+              height: 380,
+              //maxHeight: 600,
               backgroundColor: "white",
               //backgroundColor: "red",
               display: showFilters ? "flex" : "none",
@@ -1990,7 +2982,15 @@ const ListView = (props) => {
                       defaultNames == "RAM" ? "#e7e7e7" : "rgb(0,0,5)",
                   }}
                 >
-                  {wdata.length > 0 ? "Functionality" : "RAM"}
+                  {wdata.length > 0
+                    ? "Functionality"
+                    : fridgeData.length > 0
+                    ? "Defrosting Type"
+                    : tvData.length > 0
+                    ? "Resolution"
+                    : tabletData.length > 0
+                    ? "Screen Size"
+                    : "RAM"}
                 </Text>
                 <View
                   style={{
@@ -2032,7 +3032,11 @@ const ListView = (props) => {
                       defaultNames == "Storage" ? "#e7e7e7" : "rgb(0,0,5)",
                   }}
                 >
-                  {wdata.length > 0 ? "Capacity" : "Storage"}
+                  {wdata.length > 0
+                    ? "Capacity"
+                    : tvData.length > 0
+                    ? "Screen Size"
+                    : "Storage"}
                 </Text>
                 <View
                   style={{
@@ -2095,52 +3099,62 @@ const ListView = (props) => {
                 ></View>
               </TouchableOpacity>
             </View>
-
             <View
               style={{
                 flexDirection: "column",
                 width: Dimensions.get("window").width / 2,
-                height: 400,
-                justifyContent: "space-evenly",
+                height: 380,
+                flex: 1,
+                //justifyContent: "space-evenly",
                 alignItems: "center",
 
                 display: defaultNames === "Brand" ? "flex" : "none",
               }}
             >
-              {brandName.map((paras, index) => {
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    //style={styles.firstFilterDiv}
-                    onPress={() => {
-                      getNames(paras.Sbrand), console.log(getKeys(index));
-                    }}
-                    style={{
-                      width: 100,
-                      //marginTop: 150,
-                      //marginBottom: 50,
-                      backgroundColor: "gray",
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-evenly",
-                      padding: 2,
-                      paddingLeft: 8,
-                      paddingRight: 8,
-                    }}
-                  >
-                    <Text
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                  justifyContent: "space-evenly",
+                  alignItems: "center",
+                  flexGrow: 1,
+                  //flex: 1,
+                }}
+              >
+                {brandName.map((paras, index) => {
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      //style={styles.firstFilterDiv}
+                      onPress={() => {
+                        getNames(paras.Sbrand), getKeys(index);
+                      }}
                       style={{
-                        color: "white",
-                        marginTop: 9,
-                        marginBottom: 9,
+                        width: 100,
+                        marginTop: 10,
+                        //marginBottom: 50,
+                        backgroundColor: "gray",
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-evenly",
+                        padding: 2,
+                        paddingLeft: 8,
+                        paddingRight: 8,
                       }}
                     >
-                      {paras.Sbrand}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                      <Text
+                        style={{
+                          color: "white",
+                          marginTop: 9,
+                          marginBottom: 9,
+                        }}
+                      >
+                        {paras.Sbrand}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
             </View>
             <View
               style={{
@@ -2209,6 +3223,68 @@ const ListView = (props) => {
                           }}
                         >
                           {func}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : fridgeData.length > 0
+                ? fridgeFunctionality.map((func, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getRAM(func)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 8,
+                            textAlign: "center",
+                          }}
+                        >
+                          {func}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : tvData.length > 0
+                ? screenQuality.map((func, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getRAM(func)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 8,
+                            textAlign: "center",
+                          }}
+                        >
+                          {func}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : tabletData.length > 0
+                ? tbScreenSize.map((storages, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getRAM(storages)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {storages ? storages + "Inch" : null}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -2285,6 +3361,66 @@ const ListView = (props) => {
                       </TouchableOpacity>
                     );
                   })
+                : fridgeData.length > 0
+                ? fridgeCapacity.map((storages, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getStoragelist(storages)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {storages ? "< " + storages : null}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : tvData.length > 0
+                ? screenSize.map((storages, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getStoragelist(storages)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {storages ? storages : null}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : tabletData.length > 0
+                ? tabStorageoptions.map((params, indice) => {
+                    return (
+                      <TouchableOpacity
+                        key={indice}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getStoragelist(params)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {params + "GB"}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
                 : null}
             </View>
             <View
@@ -2355,6 +3491,90 @@ const ListView = (props) => {
                   })
                 : wdata.length > 0
                 ? wPriceOptions.map((price, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getPricelist(price)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {"< " +
+                            parseInt(price)
+                              .toLocaleString("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                //minimumFractionDigits: 2,
+                                //maximumFractionDigits: 2,
+                              })
+                              .replace(".00", "")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : fridgeData.length > 0
+                ? fridgePriceOptions.map((price, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getPricelist(price)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {"< " +
+                            parseInt(price)
+                              .toLocaleString("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                //minimumFractionDigits: 2,
+                                //maximumFractionDigits: 2,
+                              })
+                              .replace(".00", "")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : tvData.length > 0
+                ? tvPrice.map((price, index) => {
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.firstFilterDiv}
+                        onPress={() => getPricelist(price)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            marginTop: 9,
+                            marginBottom: 9,
+                          }}
+                        >
+                          {"< " +
+                            parseInt(price)
+                              .toLocaleString("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                //minimumFractionDigits: 2,
+                                //maximumFractionDigits: 2,
+                              })
+                              .replace(".00", "")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                : tabletData.length > 0
+                ? tbPriceOptions.map((price, index) => {
                     return (
                       <TouchableOpacity
                         key={index}
@@ -2469,6 +3689,12 @@ const ListView = (props) => {
                 <Modal data={lpData.slice(0, pages)} />
               ) : wdata.length > 0 ? (
                 <Modal data={wdata.slice(0, pages)} />
+              ) : fridgeData.length > 0 ? (
+                <Modal data={fridgeData.slice(0, pages)} />
+              ) : tvData.length > 0 ? (
+                <Modal data={tvData.slice(0, pages)} />
+              ) : tabletData.length > 0 ? (
+                <Modal data={tabletData.slice(0, pages)} />
               ) : null
             ) : (
               <View style={styles.loading}>
@@ -2541,7 +3767,8 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     width: "80%",
-    backgroundColor: "white",
+    backgroundColor: "#343a40",
+    color: "rgba(255,255,255,0.95)",
     borderRadius: 35,
     padding: 7,
   },

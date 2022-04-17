@@ -1,4 +1,5 @@
 import React from "react";
+import { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -7,13 +8,17 @@ import {
   Dimensions,
   Button,
   TouchableOpacity,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { IntakeContext } from "../contexts/Intake";
 
-//const navigate = useNavigation();
+const { width, height } = Dimensions.get("window");
 
 const Widgets = () => {
   const navigation = useNavigation();
+
+  const [intake, setIntake] = useContext(IntakeContext);
   return (
     <>
       <View>
@@ -23,10 +28,18 @@ const Widgets = () => {
               Get Brand new Oneplus 9
             </Text>
             <Text style={{ color: "#e9ecef", fontSize: 17, marginBottom: 10 }}>
-              At an affordable Pric
+              At an affordable Price
             </Text>
 
-            <Button title="click here" color="#343a40" style={Styles.sm_Btn} />
+            <Button
+              title="click here"
+              color="#343a40"
+              style={Styles.sm_Btn}
+              onPress={() => {
+                setIntake("mobiles");
+                navigation.navigate("Lists");
+              }}
+            />
           </View>
           <View>
             <Image
@@ -35,39 +48,51 @@ const Widgets = () => {
             />
           </View>
         </View>
-        <View style={Styles.lp}>
-          <View>
-            <Image
-              source={require("../images/Asus_vivobook_pri.png")}
-              style={Styles.lp_Image}
-            />
+        <TouchableWithoutFeedback
+          onPress={() => {
+            setIntake("Laptops");
+            navigation.navigate("Lists");
+          }}
+        >
+          <View style={Styles.lp}>
+            <View>
+              <Image
+                source={require("../images/Asus_vivobook_pri.png")}
+                style={Styles.lp_Image}
+              />
+            </View>
+            <View style={Styles.lp_text_container}>
+              <Text
+                style={{ color: "#495057", fontSize: 15, textAlign: "center" }}
+              >
+                Get Your New Asus Vivobook
+              </Text>
+              <Text
+                style={{ color: "#495057", fontSize: 15, textAlign: "center" }}
+              >
+                At an affordable Price
+              </Text>
+              <Text
+                style={{
+                  color: "#495057",
+                  fontSize: 16,
+                  textAlign: "center",
+                  fontWeight: "bold",
+                }}
+              >
+                of Rs.36900!!
+              </Text>
+            </View>
           </View>
-          <View style={Styles.lp_text_container}>
-            <Text
-              style={{ color: "#495057", fontSize: 15, textAlign: "center" }}
-            >
-              Get Your New Asus Vivobook
-            </Text>
-            <Text
-              style={{ color: "#495057", fontSize: 15, textAlign: "center" }}
-            >
-              At an affordable Price
-            </Text>
-            <Text
-              style={{
-                color: "#495057",
-                fontSize: 16,
-                textAlign: "center",
-                fontWeight: "bold",
-              }}
-            >
-              of Rs.36900!!
-            </Text>
-          </View>
-        </View>
+        </TouchableWithoutFeedback>
         <View style={Styles.tb}>
           <View>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setIntake("Tablets," + "Apple");
+                navigation.navigate("Lists");
+              }}
+            >
               <Text style={Styles.tb_btn}>Buy Now</Text>
             </TouchableOpacity>
           </View>
@@ -91,6 +116,76 @@ const Widgets = () => {
               Upto 30% Of on iPads
             </Text>
           </View>
+        </View>
+        <View style={Styles.wash}>
+          <View style={Styles.wheader}>
+            <Text style={Styles.WheaderText}>Washing Machines</Text>
+            <TouchableOpacity
+              style={Styles.viewBtn}
+              onPress={() => {
+                setIntake("Wmachine");
+                navigation.navigate("Lists");
+              }}
+            >
+              <Text style={Styles.viewTxt}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            style={Styles.wimg}
+            source={{
+              uri: "https://i.ibb.co/BnFR6zX/8-ww80t504dan-tl-samsung-original-imagfuksqew4afy3.jpg",
+            }}
+          />
+          <Text
+            style={{ fontSize: 17, textAlign: "center", fontWeight: "600" }}
+          >
+            Samsung 7kg AI Enabled Fully Automatic Washing Machine
+          </Text>
+          <Text style={Styles.Wprice}>Rs.32,000</Text>
+          <TouchableOpacity
+            style={Styles.Wbuy}
+            onPress={() => {
+              setIntake("Wmachine," + "Samsung");
+              navigation.navigate("Lists");
+            }}
+          >
+            <Text style={{ fontSize: 16, color: "white" }}>Buy Now</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={Styles.wash}>
+          <View style={Styles.wheader}>
+            <Text style={Styles.WheaderText}>Smart Tv's</Text>
+            <TouchableOpacity
+              style={Styles.viewBtn}
+              onPress={() => {
+                setIntake("Tvs");
+                navigation.navigate("Lists");
+              }}
+            >
+              <Text style={Styles.viewTxt}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            style={Styles.wimg}
+            source={{
+              uri: "https://i.ibb.co/k0tS3MY/samsung-sm-pri.png",
+            }}
+          />
+          <Text
+            style={{ fontSize: 18, textAlign: "center", fontWeight: "600" }}
+          >
+            Samsung 43inch Ultra HD Smart Tv
+          </Text>
+          <Text style={Styles.Wprice}>Rs.42,500</Text>
+          <TouchableOpacity
+            style={Styles.Wbuy}
+            onPress={() => {
+              setIntake("Televisions," + "Samsung");
+              navigation.navigate("Lists");
+            }}
+          >
+            <Text style={{ fontSize: 16, color: "white" }}>Buy Now</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </>
@@ -180,6 +275,72 @@ const Styles = StyleSheet.create({
     margin: 4,
     padding: 8,
     fontSize: 16,
+  },
+  wash: {
+    width: width - 20,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: "auto",
+    marginRight: "auto",
+    shadowColor: "gray",
+    shadowOpacity: 0.7,
+    elevation: 5,
+  },
+  wheader: {
+    position: "relative",
+    width: width - 20,
+    height: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
+  WheaderText: {
+    position: "relative",
+    fontSize: 22,
+    fontWeight: "700",
+    width: "70%",
+    marginLeft: "auto",
+    marginRight: "auto",
+    paddingLeft: 10,
+    paddingTop: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  wimg: {
+    marginTop: 15,
+    marginBottom: 20,
+    width: 200,
+    height: 200,
+    resizeMode: "contain",
+  },
+  viewBtn: {
+    width: "30%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.99)",
+    borderRadius: 1,
+    color: "white",
+    marginRight: 5,
+  },
+  viewTxt: {
+    color: "white",
+  },
+  Wprice: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "rgba(20,20,20,0.8)",
+    margin: 5,
+  },
+  Wbuy: {
+    backgroundColor: "rgba(0,0,0,0.99)",
+    paddingTop: 7,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingBottom: 7,
   },
 });
 

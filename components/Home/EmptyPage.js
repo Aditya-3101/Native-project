@@ -15,6 +15,7 @@ import { IntakeContext } from "../contexts/Intake";
 const Empty = () => {
   const [intake, setIntake] = useContext(IntakeContext);
   const navigation = useNavigation();
+
   return (
     <View style={styles.emptyContainer}>
       <View style={styles.backBar}>
