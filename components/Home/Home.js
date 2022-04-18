@@ -13,6 +13,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Keyboard,
+  Modal,
+  Pressable,
   TouchableWithoutFeedback,
 } from "react-native";
 import { StyleSheet, Dimensions } from "react-native";
@@ -28,6 +30,8 @@ import { Tvcontext } from "../contexts/TvContext";
 import { TabletContext } from "../contexts/TabletContext";
 import { ProfileContext } from "../contexts/ProfileContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const { width, height } = Dimensions.get("window");
 
 const Home = () => {
   const isFocused = useIsFocused();
@@ -59,8 +63,6 @@ const Home = () => {
   const { userName, Pnumber } = profile[0];
 
   const getIndex = String(userName).indexOf(" ");
-
-  const [width, setWidth] = useState(Dimensions.get("window").width);
 
   const [sideBarList, setSideBarList] = useState([
     "All Categories",
@@ -104,6 +106,8 @@ const Home = () => {
   const [showTv, setShowTv] = useState(false);
 
   const [showTb, setShowTb] = useState(false);
+
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     if (search.length > 1) {
@@ -215,12 +219,15 @@ const Home = () => {
       navigation.navigate("allCategories");
     }
     if (name === "Logout") {
-      logout();
+      setModalVisible(true);
     }
     if (name === "My Account") {
       navigation.navigate("Profile");
     }
     if (name === "My Cart") {
+      navigation.navigate("carts");
+    }
+    if (name === "My Orders") {
       navigation.navigate("carts");
     }
   };
@@ -736,6 +743,34 @@ const Home = () => {
           </TouchableWithoutFeedback>
         </View>
       </View>
+      {setModalVisible ? (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(!modalVisible)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalempty}>
+              <Text style={styles.modalHeader}>Logout</Text>
+              <Text style={styles.modalmessage}>
+                Are you sure you want to logout?
+              </Text>
+              <View style={styles.dissmissbtns}>
+                <Pressable
+                  style={styles.modalDismiss}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.dismisstxt}>Cancel</Text>
+                </Pressable>
+                <Pressable style={styles.modalDismiss} onPress={() => logout()}>
+                  <Text style={styles.dismisstxt}>Okay</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      ) : null}
     </SafeAreaView>
   );
 };
@@ -811,6 +846,56 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     fontSize: 30,
+  },
+  modalContainer: {
+    width: width,
+    height: height,
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(20,20,20,0.7)",
+  },
+  modalempty: {
+    width: width / 1.3,
+    alignItems: "center",
+    height: 150,
+    backgroundColor: "rgb(255,255,255)",
+    borderRadius: 5,
+    justifyContent: "space-between",
+  },
+  modalHeader: {
+    width: "95%",
+    //color: "rgba(255,255,255,0.98)",
+    color: "rgba(0,0,0,0.98)",
+    fontSize: 18,
+    fontWeight: "700",
+    borderBottomWidth: 1,
+    borderBottomColor: "gray",
+    paddingTop: 3,
+    paddingBottom: 3,
+  },
+  modalmessage: {
+    width: "98%",
+    fontSize: 19.6,
+    color: "rgba(0,0,0,0.98)",
+    textAlign: "center",
+  },
+  modalDismiss: {
+    width: "45%",
+    alignItems: "center",
+    borderTopColor: "gray",
+    borderTopWidth: 1,
+  },
+  dismisstxt: {
+    fontSize: 18,
+    marginTop: 5,
+    marginBottom: 5,
+    color: "rgb(35,152,255)",
+  },
+  dissmissbtns: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
   },
 });
 

@@ -1808,7 +1808,53 @@ const ListView = (props) => {
                   Price:High to Low
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (smData.length > 1) {
+                    smData.sort((a, b) => {
+                      setShowCart(false);
+                      setSortType("Relevance");
+                      setShowRemover(false);
+                      return b.S_rating - a.S_rating;
+                    });
+                  } else if (lpData.length > 1) {
+                    lpData.sort((a, b) => {
+                      setShowCart(false);
+                      setSortType("Relevance");
+                      setShowRemover(false);
+                      return b.S_rating - a.S_rating;
+                    });
+                  } else if (wdata.length > 1) {
+                    wdata.sort((a, b) => {
+                      setShowCart(false);
+                      setSortType("Relevance");
+                      setShowRemover(false);
+                      return b.S_rating - a.S_rating;
+                    });
+                  } else if (fridgeData.length > 1) {
+                    fridgeData.sort((a, b) => {
+                      setShowCart(false);
+                      setSortType("Relevance");
+                      setShowRemover(false);
+                      return b.S_rating - a.S_rating;
+                    });
+                  } else if (tvData.length > 1) {
+                    tvData.sort((a, b) => {
+                      setShowCart(false);
+                      setSortType("Relevance");
+                      setShowRemover(false);
+                      return b.S_rating - a.S_rating;
+                    });
+                  } else if (tabletData.length > 1) {
+                    tabletData.sort((a, b) => {
+                      setShowCart(false);
+                      setSortType("Relevance");
+                      setShowRemover(false);
+                      return b.S_rating - a.S_rating;
+                    });
+                  }
+                }}
+              >
                 <Text
                   style={{
                     backgroundColor: "gray",

@@ -30,16 +30,24 @@ const Widgets = () => {
             <Text style={{ color: "#e9ecef", fontSize: 17, marginBottom: 10 }}>
               At an affordable Price
             </Text>
-
-            <Button
-              title="click here"
-              color="#343a40"
+            <TouchableWithoutFeedback
               style={Styles.sm_Btn}
               onPress={() => {
                 setIntake("mobiles");
                 navigation.navigate("Lists");
               }}
-            />
+            >
+              <Text
+                style={{
+                  color: "rgb(255,255,255)",
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  borderRadius: 3,
+                  padding: 7,
+                }}
+              >
+                Click Here
+              </Text>
+            </TouchableWithoutFeedback>
           </View>
           <View>
             <Image
@@ -105,7 +113,7 @@ const Widgets = () => {
           <View style={Styles.tb_text_container}>
             <Text
               style={{
-                color: "#495057",
+                color: "rgba(0,0,0,0.8)",
                 fontSize: 19,
                 textAlign: "center",
                 fontWeight: "bold",
@@ -187,6 +195,146 @@ const Widgets = () => {
             <Text style={{ fontSize: 16, color: "white" }}>Buy Now</Text>
           </TouchableOpacity>
         </View>
+        <View style={Styles.wash}>
+          <View style={Styles.wheader}>
+            <Text style={Styles.WheaderText}>Refrigerators</Text>
+            <TouchableOpacity
+              style={Styles.viewBtn}
+              onPress={() => {
+                setIntake("Fridge");
+                navigation.navigate("Lists");
+              }}
+            >
+              <Text style={Styles.viewTxt}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            style={Styles.wimg}
+            source={{
+              uri: "https://i.ibb.co/ZzMRjKj/Samsung-sil-pri.png",
+            }}
+          />
+          <Text
+            style={{ fontSize: 18, textAlign: "center", fontWeight: "600" }}
+          >
+            Samsung 230L Direct Cool
+          </Text>
+          <Text style={Styles.Wprice}>Rs.17,190</Text>
+          <TouchableOpacity
+            style={Styles.Wbuy}
+            onPress={() => {
+              setIntake("Fridges," + "Samsung");
+              navigation.navigate("Lists");
+            }}
+          >
+            <Text style={{ fontSize: 16, color: "white" }}>Buy Now</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={Styles.wash}>
+          <View style={Styles.wheader}>
+            <Text style={Styles.WheaderText}>Tablets</Text>
+            <TouchableOpacity
+              style={Styles.viewBtn}
+              onPress={() => {
+                setIntake("Tablets");
+                navigation.navigate("Lists");
+              }}
+            >
+              <Text style={Styles.viewTxt}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            style={Styles.wimg}
+            source={{
+              uri: "https://bit.ly/3K9Wm1w",
+            }}
+          />
+          <Text
+            style={{ fontSize: 18, textAlign: "center", fontWeight: "600" }}
+          >
+            Nokia Tab T20 3GB RAM 32GB ROM 10.36 inch with Wi-Fi Only Tablet
+          </Text>
+          <Text style={Styles.Wprice}>Rs.15,500</Text>
+          <TouchableOpacity
+            style={Styles.Wbuy}
+            onPress={() => {
+              setIntake("Tablets," + "Nokia");
+              navigation.navigate("Lists");
+            }}
+          >
+            <Text style={{ fontSize: 16, color: "white" }}>Buy Now</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={Styles.wash}>
+          <View style={Styles.wheader}>
+            <Text style={Styles.WheaderText}>Smartphones</Text>
+            <TouchableOpacity
+              style={Styles.viewBtn}
+              onPress={() => {
+                setIntake("mobiles");
+                navigation.navigate("Lists");
+              }}
+            >
+              <Text style={Styles.viewTxt}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            style={Styles.wimg}
+            source={{
+              uri: "https://i.ibb.co/4MJFN7Q/61b-UBi7-U6-S-SL1500.jpg",
+            }}
+          />
+          <Text
+            style={{ fontSize: 18, textAlign: "center", fontWeight: "600" }}
+          >
+            Oneplus Nord CE
+          </Text>
+          <Text style={Styles.Wprice}>Rs.22,999</Text>
+          <TouchableOpacity
+            style={Styles.Wbuy}
+            onPress={() => {
+              setIntake("Mobiles," + "Oneplus");
+              navigation.navigate("Lists");
+            }}
+          >
+            <Text style={{ fontSize: 16, color: "white" }}>Buy Now</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={Styles.wash}>
+          <View style={Styles.wheader}>
+            <Text style={Styles.WheaderText}>Laptops</Text>
+            <TouchableOpacity
+              style={Styles.viewBtn}
+              onPress={() => {
+                setIntake("Laptops");
+                navigation.navigate("Lists");
+              }}
+            >
+              <Text style={Styles.viewTxt}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <Image
+            style={Styles.wimg}
+            source={{
+              uri: "https://i.ibb.co/S644JSn/71-Wu-DXp-TAl-L-AC-UY327-FMwebp-QL65.webp",
+            }}
+          />
+          <Text
+            style={{ fontSize: 18, textAlign: "center", fontWeight: "600" }}
+          >
+            Asus Vivobook x400 Ryzen 3rd Gen
+          </Text>
+          <Text style={Styles.Wprice}>Rs.39,500</Text>
+          <TouchableOpacity
+            style={Styles.Wbuy}
+            onPress={() => {
+              setIntake("Laptops," + "Asus");
+              navigation.navigate("Lists");
+            }}
+          >
+            <Text style={{ fontSize: 16, color: "white" }}>Buy Now</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </>
   );
@@ -218,8 +366,6 @@ const Styles = StyleSheet.create({
   sm_Btn: {
     textTransform: "capitalize",
     flexDirection: "row",
-    height: 50,
-    backgroundColor: "yellow",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 50,
@@ -288,6 +434,7 @@ const Styles = StyleSheet.create({
     shadowColor: "gray",
     shadowOpacity: 0.7,
     elevation: 5,
+    marginBottom: 10,
   },
   wheader: {
     position: "relative",
@@ -333,7 +480,7 @@ const Styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     color: "rgba(20,20,20,0.8)",
-    margin: 5,
+    margin: 2,
   },
   Wbuy: {
     backgroundColor: "rgba(0,0,0,0.99)",

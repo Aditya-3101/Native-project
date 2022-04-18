@@ -12,6 +12,7 @@ import { StackRouter } from "react-navigation";
 import SignUp from "./Home/SignUp";
 import LogIn from "./Home/SignIn";
 import Checkout from "./cartView/Checkout";
+import Record from "./cartView/Record";
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ const StackNavigator = () => {
         <Stack.Screen name="Search" component={SearchQuery} />
         <Stack.Screen name="checkout" component={Checkout} />
         <Stack.Screen name="signup" component={SignUp} />
+        <Stack.Screen name="records" component={Record} />
       </Stack.Group>
     </Stack.Navigator>
   );

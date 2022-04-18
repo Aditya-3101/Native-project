@@ -20,7 +20,6 @@ import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { useState, useLayoutEffect, useContext } from "react";
 import { ProfileContext } from "../contexts/ProfileContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { requestPermissionsAsync } from "expo-location";
 
 const { width, height } = Dimensions.get("window");
 
