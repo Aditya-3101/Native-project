@@ -230,6 +230,9 @@ const Home = () => {
     if (name === "My Orders") {
       navigation.navigate("carts");
     }
+    if (name === "Report Problem") {
+      navigation.navigate("reports");
+    }
   };
 
   const SearchThis = () => {
@@ -267,7 +270,6 @@ const Home = () => {
         setIntake("Laptops," + search);
         navigation.navigate("Lists");
         setFoundLP(true);
-        //setSearch();
       }
     });
     wmdata.map((value, index) => {

@@ -99,20 +99,9 @@ const Profile = () => {
             </Text>
           </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
-          <View style={styles.SingleOption}>
-            <MaterialIcon name="edit" style={{ fontSize: 30 }} />
-            <Text
-              style={{
-                fontSize: 17,
-                width: "80%",
-              }}
-            >
-              Edit Details
-            </Text>
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
+        <TouchableWithoutFeedback
+          onPress={() => navigation.navigate("reports")}
+        >
           <View style={styles.SingleOption}>
             <MaterialIcon name="flag" style={{ fontSize: 30 }} />
             <Text

@@ -13,6 +13,7 @@ import SignUp from "./Home/SignUp";
 import LogIn from "./Home/SignIn";
 import Checkout from "./cartView/Checkout";
 import Record from "./cartView/Record";
+import Reports from "./cartView/Reports";
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,7 @@ const StackNavigator = () => {
         <Stack.Screen name="checkout" component={Checkout} />
         <Stack.Screen name="signup" component={SignUp} />
         <Stack.Screen name="records" component={Record} />
+        <Stack.Screen name="reports" component={Reports} />
       </Stack.Group>
     </Stack.Navigator>
   );
