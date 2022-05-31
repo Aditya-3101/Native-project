@@ -10,10 +10,11 @@ import {
   Image,
 } from "react-native";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useLayoutEffect } from "react";
 import { CartContext } from "../contexts/Getcart";
 import { useNavigation } from "@react-navigation/native";
 import { DetailContext } from "../contexts/DetailContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Carts = () => {
   const navigation = useNavigation();
@@ -28,17 +29,14 @@ const Carts = () => {
   //console.log(items);
 
   useEffect(() => {
-    // console.log(items);
+    //   // console.log(items);
     items.forEach((element) => {
       element.forEach((params) => {
         setData((prev) => [...prev, params]);
+        console.log(params);
       });
     });
   }, []);
-
-  useEffect(() => {
-    //console.log(items);
-  }, [items]);
 
   return (
     <View>
@@ -53,7 +51,7 @@ const Carts = () => {
           <Text style={styles.headerText}>Home</Text>
         </View>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          {data.length == 0 ? (
+          {items.length == 0 ? (
             <View style={styles.EmptyContainer}>
               <Image
                 source={{
@@ -173,7 +171,6 @@ const Carts = () => {
                           //code to remove selected items from context usestate array.
                           setItems((prev) =>
                             prev.filter((params, i) => {
-                              console.log(i + " i " + "index " + index);
                               if (i === index - 1) {
                                 return prev.splice(i, 1);
                               } else {

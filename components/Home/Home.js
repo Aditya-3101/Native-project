@@ -7,18 +7,25 @@ import {
   View,
   Text,
   Button,
+  Alert,
   TextInput,
   Image,
   StatusBar,
   ScrollView,
   TouchableOpacity,
   Keyboard,
+  BackHandler,
   Modal,
   Pressable,
   TouchableWithoutFeedback,
 } from "react-native";
 import { StyleSheet, Dimensions } from "react-native";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
+import {
+  useNavigation,
+  useIsFocused,
+  useRoute,
+  useFocusEffect,
+} from "@react-navigation/native";
 import Widgets from "../widgets/Widgets";
 import { IntakeContext } from "../contexts/Intake";
 import { CartContext } from "../contexts/Getcart";
@@ -31,12 +38,16 @@ import { TabletContext } from "../contexts/TabletContext";
 import { ProfileContext } from "../contexts/ProfileContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { color } from "react-native/Libraries/Components/View/ReactNativeStyleAttributes";
+
 const { width, height } = Dimensions.get("window");
 
 const Home = () => {
   const isFocused = useIsFocused();
 
   const navigation = useNavigation();
+
+  const route = useRoute();
 
   const [search, setSearch] = useState("");
 
@@ -202,10 +213,54 @@ const Home = () => {
       .catch((err) => {
         console.log(err);
       });
+
+    const exitIt = () => {
+      if (route.name == "Home") {
+        // BackHandler.exitApp();
+        console.log("bacj pressed");
+        return true;
+      }
+      //BackHandler.exitApp();
+      // return BackHandler.removeEventListener("hardwareBackPress", exitIt);
+    };
+
+    // BackHandler.addEventListener("hardwareBackPress", exitIt);
+
+    // BackHandler.removeEventListener("hardwareBackPress", exitIt);
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert("Hold on!", "Are you sure you want to Exit?", [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel",
+          },
+          { text: "YES", onPress: () => BackHandler.exitApp() },
+        ]);
+        return true;
+      };
+
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
+
+  // useEffect(() => {
+  //   const backAction = () => {
+  //     BackHandler.exitApp();
+  //     console.log("back from home");
+  //     return true;
+  //   };
+  //   BackHandler.addEventListener("hardwareBackPress", backAction);
+  //   //BackHandler.removeEventListener("hardwareBackPress", backAction);
+  // }, []);
+
   const logout = async () => {
-    //console.log("logout pressed");
     try {
       await AsyncStorage.clear();
       navigation.navigate("Login");
@@ -228,7 +283,7 @@ const Home = () => {
       navigation.navigate("carts");
     }
     if (name === "My Orders") {
-      navigation.navigate("carts");
+      navigation.navigate("orders");
     }
     if (name === "Report Problem") {
       navigation.navigate("reports");
@@ -348,6 +403,24 @@ const Home = () => {
         setFoundLP(true);
       } else {
         setFoundLP(false);
+      }
+    });
+    sData.map((value, index) => {
+      if (
+        String(value.Sname).includes(search) == true ||
+        String(value.Sname).toLowerCase().includes(search) === true ||
+        String(value.Sname).toUpperCase().includes(search) === true ||
+        String(value.Sname).includes(
+          String(search)
+            .toLowerCase()
+            .split(" ")
+            .map((i, j) => i.charAt(0).toUpperCase() + i.slice(1))
+            .join(" ")
+        ) === true
+      ) {
+        setIntake("Mobiles," + search);
+        navigation.navigate("Lists");
+        setFoundLP(true);
       }
     });
   };

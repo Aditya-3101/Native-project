@@ -14,6 +14,7 @@ import LogIn from "./Home/SignIn";
 import Checkout from "./cartView/Checkout";
 import Record from "./cartView/Record";
 import Reports from "./cartView/Reports";
+import Order from "./cartView/orders";
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +28,7 @@ const StackNavigator = () => {
         <Stack.Screen name="Lists" component={ListView} />
         <Stack.Screen name="Detail" component={Main} />
         <Stack.Screen name="carts" component={Carts} />
+        <Stack.Screen name="orders" component={Order} />
         <Stack.Screen name="empty" component={Empty} />
         <Stack.Screen name="allCategories" component={All} />
         <Stack.Screen name="Search" component={SearchQuery} />

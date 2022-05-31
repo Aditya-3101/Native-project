@@ -28,6 +28,8 @@ import {
 } from "react";
 import { useNavigation } from "@react-navigation/native";
 import ListView from "../ListContainer/ListView";
+import { ProfileContext } from "../contexts/ProfileContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Main = (props) => {
   const navigation = useNavigation();
@@ -41,6 +43,10 @@ const Main = (props) => {
   const [items, setItems] = useContext(CartContext);
 
   const [intake, setIntake] = useContext(IntakeContext);
+
+  const [profile, setProfile] = useContext(ProfileContext);
+
+  const { userName, Pnumber } = profile[0];
 
   const [data, setData] = useState([]);
 
@@ -455,6 +461,7 @@ const Main = (props) => {
 
   useLayoutEffect(() => {
     let isMounted = true;
+    console.log(inputid);
     if (inputType === "Mobile") {
       fetch(`http://192.168.43.29:4000/api/main/smartphones/get?id=${inputid}`)
         .then((res) => res.json())
@@ -597,7 +604,7 @@ const Main = (props) => {
     };
   }, [selected]);
 
-  const Addthis = () => {
+  const Addthis = (id) => {
     setItems((prev) => [...prev, data]);
     setText(true);
   };
@@ -1002,7 +1009,7 @@ const Main = (props) => {
                           style={styles.btns}
                           onPress={() => {
                             if (text === false) {
-                              Addthis();
+                              Addthis(para.ProductId);
                               ToastAndroid.showWithGravityAndOffset(
                                 "Item added to cart",
                                 ToastAndroid.SHORT,

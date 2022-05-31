@@ -60,6 +60,7 @@ const SignUp = () => {
   useEffect(() => {
     LogBox.ignoreAllLogs(true);
     setShowModal(false);
+    setPass(false);
   }, []);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ const SignUp = () => {
       //Adduser();
       //navigation.navigate("Home");
       fetch(
-        `http://192.168.43.29:4000/api/main/users/validate?name=${phnum}&pass=${psw}`
+        `http://192.168.43.29:4000:4000/api/main/users/validate?name=${phnum}&pass=${psw}`
       )
         .then((res) => res.json())
         .then((result) => {
@@ -353,6 +354,32 @@ const SignUp = () => {
                   onPress={() => setExistingUser(false)}
                 >
                   <Text style={styles.dismisstxt}>Dismiss</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+        ) : null}
+        {pass ? (
+          <Modal
+            visible={pass}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setPass(!pass)}
+          >
+            <View style={styles.showmodalContainer}>
+              <View style={styles.innerModal}>
+                <Text style={styles.modalSignUpTxt}>Signup</Text>
+                <Text style={styles.modalmessagetxt}>
+                  Welcome to the family of NativeFy.
+                </Text>
+                <Text style={styles.modalmessagetxt}>
+                  Kindly Login to your Account.
+                </Text>
+                <Pressable
+                  style={styles.modalDismiss}
+                  onPress={() => navigation.navigate("Login")}
+                >
+                  <Text style={styles.dismisstxt}>Login</Text>
                 </Pressable>
               </View>
             </View>

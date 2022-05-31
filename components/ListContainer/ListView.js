@@ -409,6 +409,21 @@ const ListView = (props) => {
     };
   }, [isFocused]);
 
+  useEffect(() => {
+    BackHandler.addEventListener("hardwareBackPress", handleBackBtnPressed);
+    return () => {
+      BackHandler.removeEventListener(
+        "hardwareBackPress",
+        handleBackBtnPressed
+      );
+    };
+  }, []);
+
+  const handleBackBtnPressed = () => {
+    navigation.goBack(null);
+    return true;
+  };
+
   useLayoutEffect(() => {
     let isMounted = true;
     if (String(intake).length > 9) {

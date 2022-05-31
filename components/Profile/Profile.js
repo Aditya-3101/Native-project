@@ -11,11 +11,12 @@ import {
   TouchableWithoutFeedback,
   Modal,
   Pressable,
+  BackHandler,
 } from "react-native";
-import { useContext, useState } from "react";
+import { useContext, useState, useLayoutEffect } from "react";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import { ProfileContext } from "../contexts/ProfileContext";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
@@ -28,6 +29,37 @@ const Profile = () => {
   const { userName, Pnumber, Mail } = profile[0];
 
   const [modalVisible, setModalVisible] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Alert.alert("Hold on!", "Are you sure you want to Exit?", [
+        //   {
+        //     text: "Cancel",
+        //     onPress: () => null,
+        //     style: "cancel"
+        //   },
+        //   { text: "YES", onPress: () => BackHandler.exitApp() }
+        // ]);
+        // return true;
+        navigation.navigate("Home");
+        return true;
+      };
+
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
+
+  // useLayoutEffect(() => {
+  //   const backAction = () => {
+  //     navigation.navigate("Home");
+  //     console.log("in profile");
+  //   };
+  //   BackHandler.addEventListener("hardwareBackPress", backAction);
+  // }, []);
 
   const logout = async () => {
     try {

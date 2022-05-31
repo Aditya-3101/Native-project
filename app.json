@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "firstApp",
+    "name": "NativeFy",
     "slug": "firstApp",
-    "version": "1.0.0",
+    "version": "1.0.8",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/edited_icon.png",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/sqicon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,8 +20,9 @@
       "supportsTablet": true
     },
     "android": {
+      "package":"nativefy.com_download",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/criicon.png",
         "backgroundColor": "#FFFFFF"
       }
     },

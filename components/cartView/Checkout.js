@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Pressable,
   Modal,
+  Alert,
 } from "react-native";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useState, useLayoutEffect, useContext, useEffect } from "react";
@@ -18,6 +19,7 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import { CartContext } from "../contexts/Getcart";
 import { ProfileContext } from "../contexts/ProfileContext";
 import { DetailContext } from "../contexts/DetailContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createIconSetFromFontello } from "react-native-vector-icons";
 
 const { width, height } = Dimensions.get("window");
@@ -29,6 +31,8 @@ const subheader = "rgba(0,0,0,0.68)";
 const lightGray = "rgba(20,20,20,0.6)";
 
 const verlightGray = "rgba(20,20,20,0.5)";
+
+const utc = new Date().toJSON().slice(0, 10);
 
 const imgsofoptions = [
   {
@@ -70,7 +74,7 @@ const Checkout = () => {
 
   const [holderName, setHolderName] = useState(userName);
 
-  const [cardnumber, setCardNumber] = useState();
+  const [cardnumber, setCardNumber] = useState("");
 
   const [cardexpiry, setCardExpiry] = useState("");
 
@@ -93,6 +97,7 @@ const Checkout = () => {
   useEffect(() => {
     items.forEach((element) => {
       element.forEach((params) => {
+        console.log(params);
         setData((prev) => [...prev, params]);
       });
     });
@@ -171,6 +176,7 @@ const Checkout = () => {
                     : showindex === 2
                     ? "visa"
                     : "null",
+                date: utc,
               }),
             })
               .then((res) => res.json())
@@ -181,6 +187,18 @@ const Checkout = () => {
                 console.log(err);
               });
           });
+        } else {
+          Alert.alert("Error", "Please Enter proper data", [
+            {
+              text: "Cancel",
+              onPress: () => null,
+              style: "cancel",
+            },
+            {
+              text: "Okay",
+              onPress: () => null,
+            },
+          ]);
         }
       } else if (showindex === 3) {
         if (walletNumber.length > 8) {
@@ -195,6 +213,7 @@ const Checkout = () => {
                 producttype: element.ProductType,
                 price: element.totPrice,
                 trans: "e-wallet",
+                date: utc,
               }),
             })
               .then((res) => res.json())
@@ -205,6 +224,18 @@ const Checkout = () => {
                 console.log(err);
               });
           });
+        } else {
+          Alert.alert("Error", "Please Enter proper data", [
+            {
+              text: "Cancel",
+              onPress: () => null,
+              style: "cancel",
+            },
+            {
+              text: "Okay",
+              onPress: () => null,
+            },
+          ]);
         }
       } else if (showindex === 0) {
         data.forEach((element) => {
@@ -218,6 +249,7 @@ const Checkout = () => {
               producttype: element.ProductType,
               price: element.totPrice,
               trans: "COD",
+              date: utc,
             }),
           })
             .then((res) => res.json())
@@ -228,6 +260,18 @@ const Checkout = () => {
               console.log(err);
             });
         });
+      } else {
+        Alert.alert("Error", "Please Enter proper data", [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel",
+          },
+          {
+            text: "Okay",
+            onPress: () => null,
+          },
+        ]);
       }
     }
   };
@@ -256,396 +300,403 @@ const Checkout = () => {
             />
             <Text style={styles.emptyText}>Nothing is Here</Text>
           </View>
-        ) : null}
-        <View style={styles.datas}>
-          <View style={styles.allData}>
-            <View style={styles.showPrice}>
-              <Text style={styles.subtext}>Total</Text>
-              <Text style={styles.subPrice}>
-                {parseInt(totalPrice)
-                  .toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })
-                  .replace(".00", "")}
-              </Text>
-            </View>
-            <View style={styles.getType}>
-              <Text style={styles.paymentMethod}>Select payment type</Text>
-              <View style={styles.selectType}>
-                <ScrollView
-                  horizontal={true}
-                  //onScroll={changeActivate}
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                >
-                  {imgsofoptions.map((img, k) => {
-                    return (
-                      <View
-                        key={k}
-                        style={{
-                          width: width,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <TouchableWithoutFeedback
-                          onPress={() => {
-                            setShowindex(k);
-                            setBorder(!border);
-                            setPaymentMethod(img.type);
+        ) : (
+          <View style={styles.datas}>
+            <View style={styles.allData}>
+              <View style={styles.showPrice}>
+                <Text style={styles.subtext}>Total</Text>
+                <Text style={styles.subPrice}>
+                  {parseInt(totalPrice)
+                    .toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })
+                    .replace(".00", "")}
+                </Text>
+              </View>
+              <View style={styles.getType}>
+                <Text style={styles.paymentMethod}>Select payment type</Text>
+                <View style={styles.selectType}>
+                  <ScrollView
+                    horizontal={true}
+                    //onScroll={changeActivate}
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                  >
+                    {imgsofoptions.map((img, k) => {
+                      return (
+                        <View
+                          key={k}
+                          style={{
+                            width: width,
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          <Image
-                            source={{ uri: img.name }}
-                            style={{
-                              width: 260,
-                              height: 135,
-                              resizeMode: "contain",
-                              marginLeft: "auto",
-                              marginRight: "auto",
-                              borderWidth:
-                                k === showindex ? (border ? 2 : 1) : 1,
-                              borderRadius: 15,
-                              borderColor:
-                                k === showindex
-                                  ? border
-                                    ? "rgb(35,152,255)"
-                                    : "rgba(20,20,20,0.4)"
-                                  : "rgba(20,20,20,0.4)",
-                              backgroundColor: "rgb(256,256,256)",
+                          <TouchableWithoutFeedback
+                            onPress={() => {
+                              setShowindex(k);
+                              setBorder(!border);
+                              setPaymentMethod(img.type);
                             }}
+                          >
+                            <Image
+                              source={{ uri: img.name }}
+                              style={{
+                                width: 260,
+                                height: 135,
+                                resizeMode: "contain",
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                borderWidth:
+                                  k === showindex ? (border ? 2 : 1) : 1,
+                                borderRadius: 15,
+                                borderColor:
+                                  k === showindex
+                                    ? border
+                                      ? "rgb(35,152,255)"
+                                      : "rgba(20,20,20,0.4)"
+                                    : "rgba(20,20,20,0.4)",
+                                backgroundColor: "rgb(256,256,256)",
+                              }}
+                            />
+                          </TouchableWithoutFeedback>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              </View>
+              {paymentMethod === "mastercard" ? (
+                showindex === 1 ? (
+                  <View style={styles.cardinfo}>
+                    <Text style={styles.cardname}>Debit/Credit card info</Text>
+                    <View style={styles.carddraw}>
+                      <View style={styles.cardholdername}>
+                        <Text style={styles.nameOnCard}>Name</Text>
+                        <TextInput
+                          value={holderName}
+                          onChangeText={setHolderName}
+                          style={styles.cardholdernameinput}
+                        />
+                      </View>
+                      <View style={styles.cardholdername}>
+                        <Text style={styles.nameOnCard}>Card number</Text>
+                        <TextInput
+                          value={cardnumber}
+                          onChangeText={(digit) => updateNum(digit)}
+                          style={styles.cardholdernumber}
+                          keyboardType="numeric"
+                          placeholder="xxxx xxxx xxxx xxxx"
+                          placeholderTextColor="gray"
+                          maxLength={19}
+                        />
+                      </View>
+                      <View style={styles.cardholdercvv}>
+                        <View style={styles.cardexpiry}>
+                          <Text style={styles.nameOnCard}>Expiry Date</Text>
+                          <TextInput
+                            value={cardexpiry}
+                            onChangeText={(dates) => updateDate(dates)}
+                            style={styles.cardholdernameinput}
+                            placeholder="00/00"
+                            placeholderTextColor="gray"
                           />
-                        </TouchableWithoutFeedback>
-                      </View>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            </View>
-            {paymentMethod === "mastercard" ? (
-              showindex === 1 ? (
-                <View style={styles.cardinfo}>
-                  <Text style={styles.cardname}>Debit/Credit card info</Text>
-                  <View style={styles.carddraw}>
-                    <View style={styles.cardholdername}>
-                      <Text style={styles.nameOnCard}>Name</Text>
-                      <TextInput
-                        value={holderName}
-                        onChangeText={setHolderName}
-                        style={styles.cardholdernameinput}
-                      />
-                    </View>
-                    <View style={styles.cardholdername}>
-                      <Text style={styles.nameOnCard}>Card number</Text>
-                      <TextInput
-                        value={cardnumber}
-                        onChangeText={(digit) => updateNum(digit)}
-                        style={styles.cardholdernumber}
-                        keyboardType="numeric"
-                        placeholder="xxxx xxxx xxxx xxxx"
-                        placeholderTextColor="gray"
-                        maxLength={19}
-                      />
-                    </View>
-                    <View style={styles.cardholdercvv}>
-                      <View style={styles.cardexpiry}>
-                        <Text style={styles.nameOnCard}>Expiry Date</Text>
-                        <TextInput
-                          value={cardexpiry}
-                          onChangeText={(dates) => updateDate(dates)}
-                          style={styles.cardholdernameinput}
-                          placeholder="00/00"
-                          placeholderTextColor="gray"
-                        />
-                      </View>
-                      <View style={styles.divider}></View>
-                      <View style={styles.cardexpiry}>
-                        <Text style={styles.nameOnCard}>CVV</Text>
-                        <TextInput
-                          value={cardcvv}
-                          onChangeText={setCardcvv}
-                          style={styles.cardholdernameinput}
-                          maxLength={4}
-                          placeholder="000"
-                          placeholderTextColor="gray"
-                        />
+                        </View>
+                        <View style={styles.divider}></View>
+                        <View style={styles.cardexpiry}>
+                          <Text style={styles.nameOnCard}>CVV</Text>
+                          <TextInput
+                            value={cardcvv}
+                            onChangeText={setCardcvv}
+                            style={styles.cardholdernameinput}
+                            maxLength={4}
+                            placeholder="000"
+                            placeholderTextColor="gray"
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
-                </View>
-              ) : null
-            ) : paymentMethod === "visa" ? (
-              showindex === 2 ? (
-                <View style={styles.cardinfo}>
-                  <Text style={styles.cardname}>Debit/Credit card info</Text>
-                  <View style={styles.carddraw}>
-                    <View style={styles.cardholdername}>
-                      <Text style={styles.nameOnCard}>Name</Text>
-                      <TextInput
-                        value={holderName}
-                        onChangeText={setHolderName}
-                        style={styles.cardholdernameinput}
-                      />
-                    </View>
-                    <View style={styles.cardholdername}>
-                      <Text style={styles.nameOnCard}>Card number</Text>
-                      <TextInput
-                        value={cardnumber}
-                        onChangeText={(digit) => updateNum(digit)}
-                        style={styles.cardholdernumber}
-                        keyboardType="numeric"
-                        placeholder="xxxx xxxx xxxx xxxx"
-                        placeholderTextColor="gray"
-                        maxLength={19}
-                      />
-                    </View>
-                    <View style={styles.cardholdercvv}>
-                      <View style={styles.cardexpiry}>
-                        <Text style={styles.nameOnCard}>Expiry Date</Text>
+                ) : null
+              ) : paymentMethod === "visa" ? (
+                showindex === 2 ? (
+                  <View style={styles.cardinfo}>
+                    <Text style={styles.cardname}>Debit/Credit card info</Text>
+                    <View style={styles.carddraw}>
+                      <View style={styles.cardholdername}>
+                        <Text style={styles.nameOnCard}>Name</Text>
                         <TextInput
-                          value={cardexpiry}
-                          onChangeText={(dates) => updateDate(dates)}
+                          value={holderName}
+                          onChangeText={setHolderName}
                           style={styles.cardholdernameinput}
-                          placeholder="00/00"
-                          placeholderTextColor="gray"
                         />
                       </View>
-                      <View style={styles.divider}></View>
-                      <View style={styles.cardexpiry}>
-                        <Text style={styles.nameOnCard}>CVV</Text>
+                      <View style={styles.cardholdername}>
+                        <Text style={styles.nameOnCard}>Card number</Text>
                         <TextInput
-                          value={cardcvv}
-                          onChangeText={setCardcvv}
-                          style={styles.cardholdernameinput}
-                          maxLength={4}
-                          placeholder="000"
+                          value={cardnumber}
+                          onChangeText={(digit) => updateNum(digit)}
+                          style={styles.cardholdernumber}
+                          keyboardType="numeric"
+                          placeholder="xxxx xxxx xxxx xxxx"
                           placeholderTextColor="gray"
+                          maxLength={19}
                         />
+                      </View>
+                      <View style={styles.cardholdercvv}>
+                        <View style={styles.cardexpiry}>
+                          <Text style={styles.nameOnCard}>Expiry Date</Text>
+                          <TextInput
+                            value={cardexpiry}
+                            onChangeText={(dates) => updateDate(dates)}
+                            style={styles.cardholdernameinput}
+                            placeholder="00/00"
+                            placeholderTextColor="gray"
+                          />
+                        </View>
+                        <View style={styles.divider}></View>
+                        <View style={styles.cardexpiry}>
+                          <Text style={styles.nameOnCard}>CVV</Text>
+                          <TextInput
+                            value={cardcvv}
+                            onChangeText={setCardcvv}
+                            style={styles.cardholdernameinput}
+                            maxLength={4}
+                            placeholder="000"
+                            placeholderTextColor="gray"
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
-                </View>
-              ) : null
-            ) : paymentMethod === "e-wallet" ? (
-              showindex === 3 ? (
-                <View style={styles.walletQuery}>
-                  <TextInput
-                    value={walletNumber}
-                    onChangeText={serWalletNumber}
-                    keyboardType="number-pad"
-                    style={styles.numberinput}
-                    placeholder="Enter your number"
-                  />
-                  <TouchableWithoutFeedback>
-                    <Text style={styles.linktxt}>Link</Text>
-                  </TouchableWithoutFeedback>
-                </View>
-              ) : null
-            ) : null}
-            <View style={styles.orders}>
-              <Text style={styles.myorderheader}>My Orders</Text>
-              {data.map((para, index) => {
-                return (
-                  <TouchableWithoutFeedback
-                    key={index}
-                    onPress={() => {
-                      setSelected(para.ProductId + para.ProductType);
-                      navigation.navigate("Detail", { paths: "viaCart" });
-                    }}
-                  >
-                    <View style={styles.orderCard}>
-                      <View style={styles.orderdata}>
-                        <Text style={styles.itemname}>
-                          {para.Sname
-                            ? para.Sname
-                            : para.LPname
-                            ? para.LPname
-                            : para.Wname
-                            ? para.Wname
-                            : para.RfName
-                            ? para.RfName
-                            : para.Tvname
-                            ? para.Tvname
-                            : para.Tbname
-                            ? para.Tbname
-                            : null}
-                        </Text>
-                        <Text style={styles.itemPrice}>
-                          {para.Sprice
-                            ? parseInt(para.Sprice)
-                                .toLocaleString("en-IN", {
-                                  style: "currency",
-                                  currency: "INR",
+                ) : null
+              ) : paymentMethod === "e-wallet" ? (
+                showindex === 3 ? (
+                  <View style={styles.walletQuery}>
+                    <TextInput
+                      value={walletNumber}
+                      onChangeText={serWalletNumber}
+                      keyboardType="number-pad"
+                      style={styles.numberinput}
+                      placeholder="Enter your number"
+                    />
+                    <TouchableWithoutFeedback>
+                      <Text style={styles.linktxt}>Link</Text>
+                    </TouchableWithoutFeedback>
+                  </View>
+                ) : null
+              ) : null}
+              <View style={styles.orders}>
+                <Text style={styles.myorderheader}>My Orders</Text>
+                {data.map((para, index) => {
+                  return (
+                    <TouchableWithoutFeedback
+                      key={index}
+                      onPress={() => {
+                        setSelected(para.ProductId + para.ProductType);
+                        navigation.navigate("Detail", { paths: "viaCart" });
+                      }}
+                    >
+                      <View style={styles.orderCard}>
+                        <View style={styles.orderdata}>
+                          <Text style={styles.itemname}>
+                            {para.Sname
+                              ? para.Sname
+                              : para.LPname
+                              ? para.LPname
+                              : para.Wname
+                              ? para.Wname
+                              : para.RfName
+                              ? para.RfName
+                              : para.Tvname
+                              ? para.Tvname
+                              : para.Tbname
+                              ? para.Tbname
+                              : null}
+                          </Text>
+                          <Text style={styles.itemPrice}>
+                            {para.Sprice
+                              ? parseInt(para.Sprice)
+                                  .toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                  .replace(".00", "")
+                              : para.LPprice
+                              ? parseInt(para.LPprice)
+                                  .toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                  .replace(".00", "")
+                              : para.Wprice
+                              ? parseInt(para.Wprice)
+                                  .toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                  .replace(".00", "")
+                              : para.Rfprice
+                              ? parseInt(para.Rfprice)
+                                  .toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                  .replace(".00", "")
+                              : para.Tvprice
+                              ? parseInt(para.Tvprice)
+                                  .toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                  .replace(".00", "")
+                              : para.Tbprice
+                              ? parseInt(para.Tbprice)
+                                  .toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                  .replace(".00", "")
+                              : null}
+                          </Text>
+                          <Pressable
+                            style={({ pressed }) => [
+                              {
+                                backgroundColor: pressed
+                                  ? "transparent"
+                                  : "rgb(255,255,255)",
+                              },
+                              styles.itemremove,
+                            ]}
+                            onPress={() => {
+                              setUpdateStack(data.length - 1);
+                              setData(
+                                data.filter((params) => {
+                                  return params.ProductId != para.ProductId;
                                 })
-                                .replace(".00", "")
-                            : para.LPprice
-                            ? parseInt(para.LPprice)
-                                .toLocaleString("en-IN", {
-                                  style: "currency",
-                                  currency: "INR",
-                                })
-                                .replace(".00", "")
-                            : para.Wprice
-                            ? parseInt(para.Wprice)
-                                .toLocaleString("en-IN", {
-                                  style: "currency",
-                                  currency: "INR",
-                                })
-                                .replace(".00", "")
-                            : para.Rfprice
-                            ? parseInt(para.Rfprice)
-                                .toLocaleString("en-IN", {
-                                  style: "currency",
-                                  currency: "INR",
-                                })
-                                .replace(".00", "")
-                            : para.Tvprice
-                            ? parseInt(para.Tvprice)
-                                .toLocaleString("en-IN", {
-                                  style: "currency",
-                                  currency: "INR",
-                                })
-                                .replace(".00", "")
-                            : para.Tbprice
-                            ? parseInt(para.Tbprice)
-                                .toLocaleString("en-IN", {
-                                  style: "currency",
-                                  currency: "INR",
-                                })
-                                .replace(".00", "")
-                            : null}
-                        </Text>
-                        <Pressable
-                          style={({ pressed }) => [
-                            {
-                              backgroundColor: pressed
-                                ? "transparent"
-                                : "rgb(255,255,255)",
-                            },
-                            styles.itemremove,
-                          ]}
-                          onPress={() => {
-                            setUpdateStack(data.length - 1);
-                            setData(
-                              data.filter((params) => {
-                                return params.ProductId != para.ProductId;
-                              })
-                            );
-                            //code to remove selected items from context usestate array.
-                            setItems((prev) =>
-                              prev.filter((params, i) => {
-                                if (i === index - 1) {
-                                  return prev.splice(i, 1);
-                                } else {
-                                  if (i === index) {
-                                    return null;
+                              );
+                              //code to remove selected items from context usestate array.
+                              setItems((prev) =>
+                                prev.filter((params, i) => {
+                                  if (i === index - 1) {
+                                    return prev.splice(i, 1);
                                   } else {
-                                    return params;
+                                    if (i === index) {
+                                      return null;
+                                    } else {
+                                      return params;
+                                    }
                                   }
-                                }
-                              })
-                            );
-                          }}
-                        >
-                          {({ pressed }) => (
-                            <>
-                              <MaterialIcon
-                                name="delete"
-                                style={[
-                                  { color: pressed ? "transparent" : "black" },
-                                  styles.itemremoveicon,
-                                ]}
-                              />
-                              <Text
-                                style={[
-                                  { color: pressed ? "transparent" : "black" },
-                                  styles.itemremoveText,
-                                ]}
-                              >
-                                Remove
-                              </Text>
-                            </>
-                          )}
-                        </Pressable>
+                                })
+                              );
+                            }}
+                          >
+                            {({ pressed }) => (
+                              <>
+                                <MaterialIcon
+                                  name="delete"
+                                  style={[
+                                    {
+                                      color: pressed ? "transparent" : "black",
+                                    },
+                                    styles.itemremoveicon,
+                                  ]}
+                                />
+                                <Text
+                                  style={[
+                                    {
+                                      color: pressed ? "transparent" : "black",
+                                    },
+                                    styles.itemremoveText,
+                                  ]}
+                                >
+                                  Remove
+                                </Text>
+                              </>
+                            )}
+                          </Pressable>
+                        </View>
+                        <View style={styles.itemimg}>
+                          <Image
+                            source={{
+                              uri: para.Simg
+                                ? para.Simg
+                                : para.LPpriimg
+                                ? para.LPpriimg
+                                : para.Wpriimg
+                                ? para.Wpriimg
+                                : para.Rfpriimg
+                                ? para.Rfpriimg
+                                : para.Tvpriimg
+                                ? para.Tvpriimg
+                                : para.Tbpriimg
+                                ? para.Tbpriimg
+                                : null,
+                            }}
+                            style={styles.orderitemimg}
+                          />
+                        </View>
                       </View>
-                      <View style={styles.itemimg}>
-                        <Image
-                          source={{
-                            uri: para.Simg
-                              ? para.Simg
-                              : para.LPpriimg
-                              ? para.LPpriimg
-                              : para.Wpriimg
-                              ? para.Wpriimg
-                              : para.Rfpriimg
-                              ? para.Rfpriimg
-                              : para.Tvpriimg
-                              ? para.Tvpriimg
-                              : para.Tbpriimg
-                              ? para.Tbpriimg
-                              : null,
-                          }}
-                          style={styles.orderitemimg}
-                        />
-                      </View>
-                    </View>
-                  </TouchableWithoutFeedback>
-                );
-              })}
-            </View>
-            <View style={styles.miniProfile}>
-              <Text style={styles.profileheader}>Profile</Text>
-              <View style={styles.profileDetails}>
-                <View style={styles.namefield}>
-                  <Text style={styles.nametxt}>Name</Text>
-                  <Text style={styles.username}>{userName}</Text>
-                </View>
-                <View style={styles.namefield}>
-                  <Text style={styles.nametxt}>Phone Number</Text>
-                  <Text style={styles.username}>{Pnumber}</Text>
-                </View>
-                <View style={styles.namefield}>
-                  <Text style={styles.nametxt}>Address</Text>
-                  <TextInput
-                    value={customAdress}
-                    onChangeText={setCustomAdress}
-                    style={styles.username}
-                    placeholder="Enter shipping address"
-                  />
+                    </TouchableWithoutFeedback>
+                  );
+                })}
+              </View>
+              <View style={styles.miniProfile}>
+                <Text style={styles.profileheader}>Profile</Text>
+                <View style={styles.profileDetails}>
+                  <View style={styles.namefield}>
+                    <Text style={styles.nametxt}>Name</Text>
+                    <Text style={styles.username}>{userName}</Text>
+                  </View>
+                  <View style={styles.namefield}>
+                    <Text style={styles.nametxt}>Phone Number</Text>
+                    <Text style={styles.username}>{Pnumber}</Text>
+                  </View>
+                  <View style={styles.namefield}>
+                    <Text style={styles.nametxt}>Address</Text>
+                    <TextInput
+                      value={customAdress}
+                      onChangeText={setCustomAdress}
+                      style={styles.username}
+                      placeholder="Enter shipping address"
+                    />
+                  </View>
                 </View>
               </View>
-            </View>
-            <View style={styles.buttonsContainer}>
-              <Pressable
-                style={({ pressed }) => [
-                  {
-                    backgroundColor: pressed ? "transparent" : "rgb(20,20,20)",
-                  },
-                  styles.paybtn,
-                ]}
-                onPress={() => sendItem()}
-              >
-                {({ pressed }) => (
-                  <Text
-                    style={[
-                      {
-                        color: pressed ? "rgb(20,20,20)" : "rgb(255,255,255)",
-                      },
-                      styles.paytxt,
-                    ]}
-                  >
-                    Pay now
-                  </Text>
-                )}
-              </Pressable>
-              <View style={styles.assure}>
-                <MaterialIcon name="lock" style={styles.locks} />
-                <Text style={styles.assuretxt}>100% Secure Payment</Text>
+              <View style={styles.buttonsContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: pressed
+                        ? "transparent"
+                        : "rgb(20,20,20)",
+                    },
+                    styles.paybtn,
+                  ]}
+                  onPress={() => sendItem()}
+                >
+                  {({ pressed }) => (
+                    <Text
+                      style={[
+                        {
+                          color: pressed ? "rgb(20,20,20)" : "rgb(255,255,255)",
+                        },
+                        styles.paytxt,
+                      ]}
+                    >
+                      Pay now
+                    </Text>
+                  )}
+                </Pressable>
+                <View style={styles.assure}>
+                  <MaterialIcon name="lock" style={styles.locks} />
+                  <Text style={styles.assuretxt}>100% Secure Payment</Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        )}
         {pass ? (
           <Modal
             visible={pass}

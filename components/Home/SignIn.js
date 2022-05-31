@@ -16,7 +16,11 @@ import {
   PermissionsAndroid,
   BackHandler,
 } from "react-native";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
+import {
+  useNavigation,
+  useIsFocused,
+  useRoute,
+} from "@react-navigation/native";
 import { useState, useLayoutEffect, useContext } from "react";
 import { ProfileContext } from "../contexts/ProfileContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,6 +32,8 @@ const LogIn = () => {
 
   const isFocused = useIsFocused();
 
+  const route = useRoute();
+
   const [name, setName] = useState("");
 
   const [pass, setPass] = useState("");
@@ -38,11 +44,14 @@ const LogIn = () => {
 
   const [invalidInput, setInvalidInput] = useState(false);
 
+  const [serverError, setServerError] = useState(false);
+
   const [profile, setProfile] = useContext(ProfileContext);
 
   const checkAcessibility = async () => {
     try {
       //AsyncStorage.getItem("username");
+      //192.168.43.29:4000
       AsyncStorage.getItem("Phnumber").then((value) => {
         if (value !== null) {
           fetch(
@@ -55,7 +64,7 @@ const LogIn = () => {
               navigation.navigate("Home");
             })
             .catch((err) => {
-              console.log(err);
+              setServerError(true);
             });
           //navigation.navigate("Home");
         }
@@ -71,6 +80,7 @@ const LogIn = () => {
   };
 
   const checkUser = () => {
+    //192.168.43.29:4000
     const re =
       /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()+=-\?;,./{}|\":<>\[\]\\\' ~_]).{8,}/;
     if (name.length !== 0 && pass.length !== 0) {
@@ -84,7 +94,8 @@ const LogIn = () => {
             setProfile(Result);
           })
           .catch((err) => {
-            console.log(err);
+            //console.log(err);
+            setServerError(true);
           });
       } else {
         console.log("wrong credentials");
@@ -132,6 +143,14 @@ const LogIn = () => {
   useLayoutEffect(() => {
     requestPermission();
     checkAcessibility();
+    setServerError(false);
+    // BackHandler.addEventListener("hardwareBackPress", () => {
+    //   if (route.name === "Login") {
+    //     //BackHandler.exitApp();
+    //     console.log("log screen");
+    //     return true;
+    //   }
+    // });
   }, []);
 
   useEffect(() => {
@@ -288,6 +307,32 @@ const LogIn = () => {
             </View>
           </Modal>
         ) : null}
+        {serverError ? (
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={serverError}
+            onRequestClose={() => setServerError(!serverError)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalempty}>
+                <Text style={styles.modalHeader}>Login</Text>
+                <Text style={styles.modalmessagetinyserver}>
+                  Server is down
+                </Text>
+                <Text style={styles.modalmessageserver}>
+                  Kindly try again later.
+                </Text>
+                <Pressable
+                  style={styles.modalDismiss}
+                  onPress={() => setServerError(false)}
+                >
+                  <Text style={styles.dismisstxt}>Dismiss</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+        ) : null}
       </SafeAreaView>
     </ScrollView>
   );
@@ -403,6 +448,17 @@ const styles = StyleSheet.create({
     width: "98%",
     fontSize: 15,
     color: "rgba(0,0,0,0.98)",
+  },
+  modalmessagetinyserver: {
+    width: "98%",
+    fontSize: 17,
+    color: "rgba(0,0,0,0.98)",
+    textAlign: "center",
+    fontWeight: "700",
+  },
+  modalmessageserver: {
+    fontSize: 14,
+    color: "hsl(0,10%,10%)",
   },
   modalDismiss: {
     width: "90%",
