@@ -97,7 +97,6 @@ const Checkout = () => {
   useEffect(() => {
     items.forEach((element) => {
       element.forEach((params) => {
-        console.log(params);
         setData((prev) => [...prev, params]);
       });
     });
@@ -286,7 +285,11 @@ const Checkout = () => {
     <SafeAreaView style={styles.Home}>
       <ScrollView>
         <View style={styles.headerWithName}>
-          <MaterialIcon name="arrow-back-ios" style={styles.revert} />
+          <MaterialIcon
+            name="arrow-back-ios"
+            style={styles.revert}
+            onPress={() => navigation.navigate("Home")}
+          />
           <Text style={styles.headerName}>Payment</Text>
           <View style={styles.nulldiv}></View>
         </View>
