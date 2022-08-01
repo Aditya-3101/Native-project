@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState, useContext } from "react";
 import {
   View,
@@ -8,54 +8,191 @@ import {
   Dimensions,
   Button,
   TouchableOpacity,
+  ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { IntakeContext } from "../contexts/Intake";
+import Swiper from "react-native-swiper";
 
 const { width, height } = Dimensions.get("window");
 
 const Widgets = () => {
   const navigation = useNavigation();
 
+  const [current, setCurrent] = useState(0);
+
   const [intake, setIntake] = useContext(IntakeContext);
+
+  // useEffect(() => {
+  //   setInterval(() => {
+  //     if (current === 3) {
+  //       setCurrent((prev) => prev - 3);
+  //     } else {
+  //       setCurrent((prev) => prev + 1);
+  //       console.log(current);
+  //     }
+  //   }, 5000);
+  // }, []);
+
   return (
     <>
       <View>
-        <View style={Styles.sm}>
-          <View style={Styles.text_Container}>
-            <Text style={{ color: "#e9ecef", fontSize: 17 }}>
-              Get Brand new Oneplus 9
-            </Text>
-            <Text style={{ color: "#e9ecef", fontSize: 17, marginBottom: 10 }}>
-              At an affordable Price
-            </Text>
-            <TouchableWithoutFeedback
-              style={Styles.sm_Btn}
-              onPress={() => {
-                setIntake("mobiles");
-                navigation.navigate("Lists");
-              }}
-            >
+        <Swiper
+          autoplay={true}
+          autoplayTimeout={3}
+          dotColor={"transparent"}
+          activeDotColor={"transparent"}
+          style={{ height: 140 }}
+        >
+          <View
+            style={{
+              width: Dimensions.get("window").width,
+              //height: Dimensions.get("window").height / 5,
+              height: 140,
+              backgroundColor: "#6c757d",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+            }}
+          >
+            <View style={Styles.text_Container}>
+              <Text style={{ color: "#e9ecef", fontSize: 17 }}>
+                Get Brand new Oneplus 9
+              </Text>
               <Text
-                style={{
-                  color: "rgb(255,255,255)",
-                  backgroundColor: "rgba(0,0,0,0.5)",
-                  borderRadius: 3,
-                  padding: 7,
+                style={{ color: "#e9ecef", fontSize: 17, marginBottom: 10 }}
+              >
+                At an affordable Price
+              </Text>
+              <TouchableWithoutFeedback
+                style={Styles.sm_Btn}
+                onPress={() => {
+                  setIntake("mobiles");
+                  navigation.navigate("Lists");
                 }}
               >
-                Click Here
+                <Text
+                  style={{
+                    color: "rgb(255,255,255)",
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    borderRadius: 3,
+                    padding: 7,
+                  }}
+                >
+                  Click Here
+                </Text>
+              </TouchableWithoutFeedback>
+            </View>
+            <View>
+              <Image
+                source={require("../images/oneplus-9.png")}
+                style={Styles.sm_Image}
+              />
+            </View>
+          </View>
+          <View
+            style={{
+              width: Dimensions.get("window").width,
+              backgroundColor: "rgb(255,255,255)",
+              display: "flex",
+              height: 140,
+              flexDirection: "row-reverse",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+              borderBottomColor: "gray",
+              borderBottomWidth: 0.4,
+            }}
+          >
+            <View style={Styles.text_Container}>
+              <Text
+                style={{ color: "rgb(0,0,0)", fontSize: 16, marginBottom: 10 }}
+              >
+                Iphone 12 at{" "}
+                <Text style={{ fontWeight: "700", fontSize: 18 }}>79,000</Text>{" "}
+                only!!!
               </Text>
-            </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                style={Styles.sm_Btn}
+                onPress={() => {
+                  setIntake("Mobiles," + "Apple");
+                  navigation.navigate("Lists");
+                }}
+              >
+                <Text
+                  style={{
+                    color: "rgb(255,255,255)",
+                    backgroundColor: "rgba(0,0,0,99)",
+                    borderRadius: 3,
+                    padding: 7,
+                  }}
+                >
+                  Buy Now
+                </Text>
+              </TouchableWithoutFeedback>
+            </View>
+            <View>
+              <Image
+                source={{
+                  uri: "https://i.ibb.co/ydq2CzT/iphone-12-mjnm3hn-a-apple-original-imag2k2v6ehvnzfd-removebg-preview.png",
+                }}
+                style={Styles.sm_Image}
+              />
+            </View>
           </View>
-          <View>
-            <Image
-              source={require("../images/oneplus-9.png")}
-              style={Styles.sm_Image}
-            />
+          <View
+            style={{
+              width: Dimensions.get("window").width,
+              backgroundColor: "rgb(255,255,255)",
+              display: "flex",
+              height: 140,
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+              borderBottomColor: "gray",
+              borderBottomWidth: 0.4,
+            }}
+          >
+            <View style={Styles.text_Container}>
+              <Text
+                style={{ color: "rgb(0,0,0)", fontSize: 16, marginBottom: 10 }}
+              >
+                Galaxy A72 at <Text>{""}</Text>
+                <Text style={{ fontWeight: "700", fontSize: 18 }}>
+                  34,000
+                </Text>{" "}
+                only!!!
+              </Text>
+              <TouchableWithoutFeedback
+                style={Styles.sm_Btn}
+                onPress={() => {
+                  setIntake("Mobiles," + "Samsung");
+                  navigation.navigate("Lists");
+                }}
+              >
+                <Text
+                  style={{
+                    color: "rgb(255,255,255)",
+                    backgroundColor: "rgba(0,0,0,99)",
+                    borderRadius: 3,
+                    padding: 7,
+                  }}
+                >
+                  Buy Now
+                </Text>
+              </TouchableWithoutFeedback>
+            </View>
+            <View>
+              <Image
+                source={{
+                  uri: "https://i.ibb.co/TKqmzcM/galaxy-a72-sm-a725fzkhins-samsung-original-imagfb56prgkwxzt-removebg-preview.png",
+                }}
+                style={Styles.sm_Image}
+              />
+            </View>
           </View>
-        </View>
+        </Swiper>
         <TouchableWithoutFeedback
           onPress={() => {
             setIntake("Laptops");
